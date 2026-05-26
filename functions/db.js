@@ -8,7 +8,7 @@
 const { getFirestore } = require('firebase-admin/firestore');
 
 function docPath(uid, key) {
-  return uid ? `userData/${uid}/${key}` : `appData/${key}`;
+  return uid ? `userData/${uid}/data/${key}` : `appData/${key}`;
 }
 function explColl(uid) {
   return uid ? `userData/${uid}/explanations` : 'explanations';
