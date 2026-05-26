@@ -1,0 +1,21 @@
+# Firebase
+.firebase/
+.firebaserc.local
+
+# Environment variables (API keys — never commit)
+functions/.env
+functions/.env.local
+backend/.env
+
+# Dependencies
+functions/node_modules/
+backend/node_modules/
+node_modules/
+
+# Logs
+firebase-debug.log
+firebase-debug.*.log
+
+# Legacy (pre-Firebase) source — not part of the deployed stack
+backend/
+frontend/

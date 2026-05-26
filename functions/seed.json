@@ -1,0 +1,650 @@
+[
+  {
+    "name": "코리안리",
+    "sector": "금융", "industry": "보험", "isHolding": false, "category": "보험",
+    "per": 6.98, "pbr": 0.55, "roe": 9.02, "payout": 31.28,
+    "mcap": 15878, "price": 14530, "prevDps": 570,
+    "divYield": 0.03922918100481762, "avgDps": 463.5, "avgYield": 0.03189951823812801,
+    "grade": "A", "code": "003690"
+  },
+  {
+    "name": "서울보증보험",
+    "sector": "금융", "industry": "보험", "isHolding": false, "category": "보험",
+    "per": 12.94, "pbr": 0.67, "roe": 5.18, "payout": 74.54,
+    "mcap": 24612, "price": 45400, "prevDps": 2865,
+    "divYield": 0.06310572687224669, "avgDps": 3190.25, "avgYield": 0.07026982378854625,
+    "grade": "A", "code": "031210"
+  },
+  {
+    "name": "삼성화재우",
+    "sector": "금융", "industry": "보험", "isHolding": false, "category": "보험",
+    "per": 12.21, "pbr": 0.99, "roe": 10.97, "payout": 41.07,
+    "mcap": 9512, "price": 389500, "prevDps": 19505,
+    "divYield": 0.05007702182284981, "avgDps": 17080, "avgYield": 0.043851091142490375,
+    "grade": "A", "code": "000815"
+  },
+  {
+    "name": "DB손해보험",
+    "sector": "금융", "industry": "보험", "isHolding": false, "category": "보험",
+    "per": 5.19, "pbr": 0.73, "roe": 17.75, "payout": 25.78,
+    "mcap": 69313, "price": 155600, "prevDps": 7600,
+    "divYield": 0.04884318766066838, "avgDps": 6075, "avgYield": 0.03904241645244216,
+    "grade": "A", "code": "005830"
+  },
+  {
+    "name": "현대해상",
+    "sector": "금융", "industry": "보험", "isHolding": false, "category": "보험",
+    "per": null, "pbr": null, "roe": null, "payout": null,
+    "mcap": 20540, "price": null, "prevDps": null,
+    "divYield": null, "avgDps": null, "avgYield": null,
+    "grade": "A", "code": "001450"
+  },
+  {
+    "name": "한화손해보험",
+    "sector": "금융", "industry": "보험", "isHolding": false, "category": "보험",
+    "per": null, "pbr": null, "roe": null, "payout": null,
+    "mcap": 4956, "price": null, "prevDps": null,
+    "divYield": null, "avgDps": null, "avgYield": null,
+    "grade": "C", "code": "000370"
+  },
+  {
+    "name": "한화생명",
+    "sector": "금융", "industry": "보험", "isHolding": false, "category": "보험",
+    "per": null, "pbr": null, "roe": null, "payout": null,
+    "mcap": 22799, "price": null, "prevDps": null,
+    "divYield": null, "avgDps": null, "avgYield": null,
+    "grade": "C", "code": "088350"
+  },
+  {
+    "name": "삼성생명",
+    "sector": "금융", "industry": "보험", "isHolding": false, "category": "보험",
+    "per": 13.69, "pbr": 0.45, "roe": 4.96, "payout": 41.33,
+    "mcap": 170400, "price": 353000, "prevDps": 5300,
+    "divYield": 0.01501416430594901, "avgDps": 4125, "avgYield": 0.011685552407932011,
+    "grade": "C", "code": "032830"
+  },
+  {
+    "name": "기업은행",
+    "sector": "금융", "industry": "은행", "isHolding": false, "category": "은행",
+    "per": 6.16, "pbr": 0.46, "roe": 7.7, "payout": 30.83,
+    "mcap": 125515, "price": 20350, "prevDps": 1048,
+    "divYield": 0.0514987714987715, "avgDps": 1014.25, "avgYield": 0.04984029484029484,
+    "grade": "A", "code": "024110"
+  },
+  {
+    "name": "우리금융지주",
+    "sector": "금융", "industry": "은행", "isHolding": true, "category": "은행",
+    "per": 6.63, "pbr": 0.57, "roe": 8.91, "payout": 31.96,
+    "mcap": 125424, "price": 30300, "prevDps": 1360,
+    "divYield": 0.044884488448844885, "avgDps": 1172.5, "avgYield": 0.0386963696369637,
+    "grade": "A", "code": "316140"
+  },
+  {
+    "name": "신한지주",
+    "sector": "금융", "industry": "은행", "isHolding": true, "category": "은행",
+    "per": 7.62, "pbr": 0.63, "roe": 8.72, "payout": 25.07,
+    "mcap": 243919, "price": 95000, "prevDps": 2590,
+    "divYield": 0.027263157894736843, "avgDps": 2228.75, "avgYield": 0.023460526315789473,
+    "grade": "A", "code": "055550"
+  },
+  {
+    "name": "KB금융",
+    "sector": "금융", "industry": "은행", "isHolding": true, "category": "은행",
+    "per": 8.25, "pbr": 0.76, "roe": 9.98, "payout": 27.11,
+    "mcap": 321906, "price": 155700, "prevDps": 4367,
+    "divYield": 0.02804752729608221, "avgDps": 3387.75, "avgYield": 0.02175818882466281,
+    "grade": "A", "code": "105560"
+  },
+  {
+    "name": "하나금융지주",
+    "sector": "금융", "industry": "은행", "isHolding": true, "category": "은행",
+    "per": 6.67, "pbr": 0.57, "roe": 9.17, "payout": 27.96,
+    "mcap": 178951, "price": 119200, "prevDps": 4105,
+    "divYield": 0.034437919463087246, "avgDps": 3613.75, "avgYield": 0.030316694630872484,
+    "grade": "A", "code": "086790"
+  },
+  {
+    "name": "iM금융지주",
+    "sector": "금융", "industry": "은행", "isHolding": true, "category": "은행",
+    "per": 5.77, "pbr": 0.4, "roe": 7.27, "payout": 25.33,
+    "mcap": 15158, "price": 18320, "prevDps": 700,
+    "divYield": 0.03820960698689956, "avgDps": 600, "avgYield": 0.03275109170305677,
+    "grade": "C", "code": "139130"
+  },
+  {
+    "name": "BNK금융지주",
+    "sector": "금융", "industry": "은행", "isHolding": true, "category": "은행",
+    "per": 6.18, "pbr": 0.46, "roe": 7.58, "payout": 28.12,
+    "mcap": 34354, "price": 17160, "prevDps": 735,
+    "divYield": 0.04283216783216783, "avgDps": 630, "avgYield": 0.03671328671328671,
+    "grade": "C", "code": "138930"
+  },
+  {
+    "name": "JB금융지주",
+    "sector": "금융", "industry": "은행", "isHolding": true, "category": "은행",
+    "per": 6.96, "pbr": 0.81, "roe": 12.36, "payout": 30.03,
+    "mcap": 34302, "price": 24900, "prevDps": 1140,
+    "divYield": 0.04578313253012048, "avgDps": 956.25, "avgYield": 0.038403614457831324,
+    "grade": "C", "code": "175330"
+  },
+  {
+    "name": "카카오뱅크",
+    "sector": "금융", "industry": "은행", "isHolding": false, "category": "은행",
+    "per": 21.45, "pbr": 1.52, "roe": 7.23, "payout": 45.64,
+    "mcap": 109228, "price": 22450, "prevDps": 460,
+    "divYield": 0.020489977728285078, "avgDps": 262.5, "avgYield": 0.011692650334075724,
+    "grade": "C", "code": "323410"
+  },
+  {
+    "name": "삼성증권",
+    "sector": "금융", "industry": "증권", "isHolding": false, "category": "증권",
+    "per": 6.68, "pbr": 0.83, "roe": 13.09, "payout": 35.46,
+    "mcap": 41658, "price": 122600, "prevDps": 4000,
+    "divYield": 0.03262642740619902, "avgDps": 2850, "avgYield": 0.0232463295269168,
+    "grade": "A", "code": "016360"
+  },
+  {
+    "name": "한국금융지주우",
+    "sector": "금융", "industry": "증권", "isHolding": true, "category": "증권",
+    "per": 4.93, "pbr": 0.79, "roe": 18.66, "payout": 25.13,
+    "mcap": 3298, "price": 167500, "prevDps": 8752,
+    "divYield": 0.052250746268656716, "avgDps": 4467, "avgYield": 0.02666865671641791,
+    "grade": "A", "code": "071055"
+  },
+  {
+    "name": "NH투자증권우",
+    "sector": "금융", "industry": "증권", "isHolding": false, "category": "증권",
+    "per": 7.31, "pbr": 0.84, "roe": 11.76, "payout": 47.29,
+    "mcap": 2516, "price": 25500, "prevDps": 1350,
+    "divYield": 0.052941176470588235, "avgDps": 987.5, "avgYield": 0.03872549019607843,
+    "grade": "A", "code": "005945"
+  },
+  {
+    "name": "다우기술",
+    "sector": "정보기술", "industry": "IT서비스", "isHolding": false, "category": "IT서비스",
+    "per": 3.45, "pbr": 0.49, "roe": 15.95, "payout": 15.37,
+    "mcap": 9646, "price": 43600, "prevDps": 1800,
+    "divYield": 0.04128440366972477, "avgDps": 1125, "avgYield": 0.025802752293577983,
+    "grade": "A", "code": "023590"
+  },
+  {
+    "name": "대신증권2우B",
+    "sector": "금융", "industry": "증권", "isHolding": false, "category": "증권",
+    "per": 13.21, "pbr": 0.5, "roe": 5.06, "payout": 50.6,
+    "mcap": 1560, "price": 20800, "prevDps": 1200,
+    "divYield": 0.057692307692307696, "avgDps": 1200, "avgYield": 0.057692307692307696,
+    "grade": "A", "code": "003547"
+  },
+  {
+    "name": "미래에셋증권2우B",
+    "sector": "금융", "industry": "증권", "isHolding": false, "category": "증권",
+    "per": 10.79, "pbr": 1.02, "roe": 12.36, "payout": 11.1,
+    "mcap": 5899, "price": 17770, "prevDps": 300,
+    "divYield": 0.016882386043894203, "avgDps": 225, "avgYield": 0.012661789532920653,
+    "grade": "A", "code": "00680K"
+  },
+  {
+    "name": "메리츠금융지주",
+    "sector": "금융", "industry": "증권", "isHolding": true, "category": "증권",
+    "per": 8.74, "pbr": 1.85, "roe": 23.44, "payout": 10.44,
+    "mcap": 227338, "price": 109200, "prevDps": 1350,
+    "divYield": 0.012362637362637362, "avgDps": 1006.25, "avgYield": 0.00921474358974359,
+    "grade": "C", "code": "138040"
+  },
+  {
+    "name": "신영증권",
+    "sector": "금융", "industry": "증권", "isHolding": false, "category": "증권",
+    "per": 11.37, "pbr": 0.33, "roe": 6.45, "payout": 36.9,
+    "mcap": 13366, "price": 181600, "prevDps": 5000,
+    "divYield": 0.02753303964757709, "avgDps": 4375, "avgYield": 0.024091409691629956,
+    "grade": "C", "code": "001720"
+  },
+  {
+    "name": "키움증권",
+    "sector": "금융", "industry": "증권", "isHolding": false, "category": "증권",
+    "per": 7.15, "pbr": 1.14, "roe": 18.12, "payout": 27.05,
+    "mcap": 32211, "price": 409500, "prevDps": 11500,
+    "divYield": 0.028083028083028084, "avgDps": 6250, "avgYield": 0.015262515262515262,
+    "grade": "C", "code": "039490"
+  },
+  {
+    "name": "유안타증권",
+    "sector": "금융", "industry": "증권", "isHolding": false, "category": "증권",
+    "per": 8.2, "pbr": 0.4, "roe": 5.4, "payout": 47.94,
+    "mcap": 5629, "price": 5760, "prevDps": 220,
+    "divYield": 0.03819444444444445, "avgDps": 177.5, "avgYield": 0.030815972222222224,
+    "grade": "C", "code": "003470"
+  },
+  {
+    "name": "SK텔레콤",
+    "sector": "통신서비스", "industry": "통신", "isHolding": false, "category": "통신",
+    "per": 28.14, "pbr": 0.89, "roe": 3.33, "payout": 86.55,
+    "mcap": 120068, "price": 102700, "prevDps": 1660,
+    "divYield": 0.016163583252190847, "avgDps": 3015, "avgYield": 0.029357351509250243,
+    "grade": "A", "code": "017670"
+  },
+  {
+    "name": "LG유플러스",
+    "sector": "통신서비스", "industry": "통신", "isHolding": false, "category": "통신",
+    "per": 12.19, "pbr": 0.71, "roe": 6.01, "payout": 53.73,
+    "mcap": 46674, "price": 15620, "prevDps": 660,
+    "divYield": 0.04225352112676056, "avgDps": 652.5, "avgYield": 0.04177336747759283,
+    "grade": "A", "code": "032640"
+  },
+  {
+    "name": "KT",
+    "sector": "통신서비스", "industry": "통신", "isHolding": false, "category": "통신",
+    "per": 7.66, "pbr": 0.72, "roe": 10.22, "payout": 33.56,
+    "mcap": 124877, "price": 55600, "prevDps": 2400,
+    "divYield": 0.04316546762589928, "avgDps": 2080, "avgYield": 0.03741007194244604,
+    "grade": "A", "code": "030200"
+  },
+  {
+    "name": "LG우",
+    "sector": "산업재", "industry": "복합기업", "isHolding": true, "category": "복합기업",
+    "per": 17.44, "pbr": 0.43, "roe": 2.64, "payout": 64.86,
+    "mcap": 1734, "price": 77000, "prevDps": 3150,
+    "divYield": 0.04090909090909091, "avgDps": 3125, "avgYield": 0.040584415584415584,
+    "grade": "A", "code": "003555"
+  },
+  {
+    "name": "삼성전자",
+    "sector": "정보기술", "industry": "반도체", "isHolding": false, "category": "반도체",
+    "per": 18.27, "pbr": 1.87, "roe": 10.85, "payout": 25.1,
+    "mcap": 3622818, "price": 299000, "prevDps": 1668,
+    "divYield": 0.005578595317725752, "avgDps": 1500.5, "avgYield": 0.005018394648829432,
+    "grade": "A", "code": "005930"
+  },
+  {
+    "name": "삼성전자우",
+    "sector": "정보기술", "industry": "반도체", "isHolding": false, "category": "반도체",
+    "per": 18.27, "pbr": 1.87, "roe": 10.85, "payout": 25.1,
+    "mcap": 408803, "price": 188000, "prevDps": 1669,
+    "divYield": 0.008877659574468085, "avgDps": 1501.5, "avgYield": 0.007986702127659574,
+    "grade": "A", "code": "005935"
+  },
+  {
+    "name": "삼성물산우B",
+    "sector": "산업재", "industry": "상사", "isHolding": true, "category": "상사",
+    "per": 16.91, "pbr": 0.79, "roe": 6.02, "payout": 18.79,
+    "mcap": 1313, "price": 228000, "prevDps": 2850,
+    "divYield": 0.0125, "avgDps": 2612.5, "avgYield": 0.011458333333333333,
+    "grade": "A", "code": "028270"
+  },
+  {
+    "name": "현대차우",
+    "sector": "경기소비재", "industry": "자동차", "isHolding": false, "category": "자동차",
+    "per": 8.39, "pbr": 0.67, "roe": 8.41, "payout": 27.72,
+    "mcap": 36739, "price": 270000, "prevDps": 10050,
+    "divYield": 0.03722222222222222, "avgDps": 10150, "avgYield": 0.037592592592592594,
+    "grade": "A", "code": "005385"
+  },
+  {
+    "name": "현대차3우B",
+    "sector": "경기소비재", "industry": "자동차", "isHolding": false, "category": "자동차",
+    "per": 8.39, "pbr": 0.67, "roe": 8.41, "payout": 27.72,
+    "mcap": 3663, "price": 259000, "prevDps": 10050,
+    "divYield": 0.0388030888030888, "avgDps": 10150, "avgYield": 0.03918918918918919,
+    "grade": "A", "code": "005389"
+  },
+  {
+    "name": "기아",
+    "sector": "경기소비재", "industry": "자동차", "isHolding": false, "category": "자동차",
+    "per": 6.37, "pbr": 0.77, "roe": 12.92, "payout": 34.95,
+    "mcap": 393298, "price": 167700, "prevDps": 6800,
+    "divYield": 0.04054859868813357, "avgDps": 5600, "avgYield": 0.033392963625521764,
+    "grade": "A", "code": "000270"
+  },
+  {
+    "name": "GS",
+    "sector": "산업재", "industry": "복합기업", "isHolding": true, "category": "복합기업",
+    "per": 6.68, "pbr": 0.36, "roe": 5.55, "payout": 35.57,
+    "mcap": 34565, "price": 75200, "prevDps": 3000,
+    "divYield": 0.0398936170212766, "avgDps": 2675, "avgYield": 0.0355718085106383,
+    "grade": "A", "code": "078930"
+  },
+  {
+    "name": "GS우",
+    "sector": "산업재", "industry": "복합기업", "isHolding": true, "category": "복합기업",
+    "per": 6.68, "pbr": 0.36, "roe": 5.55, "payout": 35.57,
+    "mcap": 653, "price": 56100, "prevDps": 3050,
+    "divYield": 0.054367201426024955, "avgDps": 2725, "avgYield": 0.04857397504456328,
+    "grade": "A", "code": "078935"
+  },
+  {
+    "name": "HD현대",
+    "sector": "산업재", "industry": "복합기업", "isHolding": true, "category": "복합기업",
+    "per": 15.47, "pbr": 1.32, "roe": 10.25, "payout": 29.36,
+    "mcap": 59403, "price": 276500, "prevDps": 4000,
+    "divYield": 0.014466546112115732, "avgDps": 3975, "avgYield": 0.014376130198915009,
+    "grade": "C", "code": "267250"
+  },
+  {
+    "name": "한화3우B",
+    "sector": "산업재", "industry": "복합기업", "isHolding": true, "category": "복합기업",
+    "per": 20.72, "pbr": 0.61, "roe": 3.3, "payout": 26.49,
+    "mcap": 3506, "price": 48400, "prevDps": 1150,
+    "divYield": 0.023760330578512397, "avgDps": 900, "avgYield": 0.01859504132231405,
+    "grade": "A", "code": "000887"
+  },
+  {
+    "name": "SK",
+    "sector": "산업재", "industry": "복합기업", "isHolding": true, "category": "복합기업",
+    "per": 11.73, "pbr": 0.56, "roe": 6.35, "payout": 27.59,
+    "mcap": 101286, "price": 576000, "prevDps": 8000,
+    "divYield": 0.013888888888888888, "avgDps": 6250, "avgYield": 0.010850694444444444,
+    "grade": "A", "code": "034730"
+  },
+  {
+    "name": "맥쿼리인프라",
+    "sector": "금융", "industry": "인프라펀드", "isHolding": false, "category": "인프라펀드",
+    "per": null, "pbr": null, "roe": null, "payout": null,
+    "mcap": 53065, "price": 11040, "prevDps": 760,
+    "divYield": 0.06884057971014493, "avgDps": 762.75, "avgYield": 0.06908967391304348,
+    "grade": "A", "code": "088980"
+  },
+  {
+    "name": "KB발해인프라",
+    "sector": "금융", "industry": "인프라펀드", "isHolding": false, "category": "인프라펀드",
+    "per": null, "pbr": null, "roe": null, "payout": null,
+    "mcap": 9277, "price": 9970, "prevDps": 650,
+    "divYield": 0.06519558676028084, "avgDps": 243.75, "avgYield": 0.024448345035105314,
+    "grade": "C", "code": "415640"
+  },
+  {
+    "name": "한국자산신탁",
+    "sector": "금융", "industry": "부동산신탁", "isHolding": false, "category": "부동산신탁",
+    "per": 6.04, "pbr": 0.27, "roe": 4.64, "payout": 37.17,
+    "mcap": 3081, "price": 2375, "prevDps": 150,
+    "divYield": 0.06315789473684211, "avgDps": 172.5, "avgYield": 0.07263157894736842,
+    "grade": "A", "code": "123890"
+  },
+  {
+    "name": "KT&G",
+    "sector": "필수소비재", "industry": "담배", "isHolding": false, "category": "담배",
+    "per": 15.84, "pbr": 1.59, "roe": 11.77, "payout": 57.56,
+    "mcap": 124382, "price": 180400, "prevDps": 6000,
+    "divYield": 0.03325942350332594, "avgDps": 5400, "avgYield": 0.02993348115299335,
+    "grade": "A", "code": "033780"
+  },
+  {
+    "name": "NICE",
+    "sector": "금융", "industry": "금융서비스", "isHolding": true, "category": "금융서비스",
+    "per": 12.8, "pbr": 0.6, "roe": 4.98, "payout": 52,
+    "mcap": 4251, "price": 13020, "prevDps": 560,
+    "divYield": 0.043010752688172046, "avgDps": 480.25, "avgYield": 0.03688556067588326,
+    "grade": "C", "code": "034310"
+  },
+  {
+    "name": "NICE평가정보",
+    "sector": "금융", "industry": "금융서비스", "isHolding": false, "category": "금융서비스",
+    "per": 13.09, "pbr": 2.14, "roe": 17.62, "payout": 38.66,
+    "mcap": 7290, "price": 15060, "prevDps": 510,
+    "divYield": 0.03386454183266932, "avgDps": 437.5, "avgYield": 0.029050464807436917,
+    "grade": "C", "code": "030190"
+  },
+  {
+    "name": "POSCO홀딩스",
+    "sector": "소재", "industry": "철강", "isHolding": true, "category": "철강",
+    "per": 37.73, "pbr": 0.41, "roe": 1.18, "payout": 114.99,
+    "mcap": 254896, "price": 442000, "prevDps": 10000,
+    "divYield": 0.02262443438914027, "avgDps": 10500, "avgYield": 0.023755656108597284,
+    "grade": "A", "code": "005490"
+  },
+  {
+    "name": "LX인터내셔널",
+    "sector": "산업재", "industry": "상사", "isHolding": false, "category": "상사",
+    "per": 8.88, "pbr": 0.42, "roe": 5.22, "payout": 50.73,
+    "mcap": 10000, "price": 44050, "prevDps": 2000,
+    "divYield": 0.04540295119182747, "avgDps": 2050, "avgYield": 0.046538024971623154,
+    "grade": "A", "code": "001120"
+  },
+  {
+    "name": "E1",
+    "sector": "에너지", "industry": "가스", "isHolding": false, "category": "가스",
+    "per": 5.45, "pbr": 0.24, "roe": 5.29, "payout": 25.1,
+    "mcap": 4246, "price": 91800, "prevDps": 4550,
+    "divYield": 0.049564270152505446, "avgDps": 4187.5, "avgYield": 0.04561546840958606,
+    "grade": "B", "code": "017940"
+  },
+  {
+    "name": "SK가스",
+    "sector": "에너지", "industry": "가스", "isHolding": false, "category": "가스",
+    "per": 8.84, "pbr": 0.69, "roe": 8.24, "payout": 34.45,
+    "mcap": 23214, "price": 254000, "prevDps": 9000,
+    "divYield": 0.03543307086614173, "avgDps": 7875, "avgYield": 0.031003937007874016,
+    "grade": "A", "code": "018670"
+  },
+  {
+    "name": "SGC에너지",
+    "sector": "에너지", "industry": "가스", "isHolding": false, "category": "가스",
+    "per": -5.15, "pbr": 0.45, "roe": -8.42, "payout": -30.52,
+    "mcap": 3271, "price": 49100, "prevDps": 1300,
+    "divYield": 0.026476578411405296, "avgDps": 1600, "avgYield": 0.032586558044806514,
+    "grade": "B", "code": "011300"
+  },
+  {
+    "name": "포스코인터내셔널",
+    "sector": "산업재", "industry": "상사", "isHolding": false, "category": "상사",
+    "per": 14.21, "pbr": 1.26, "roe": 9.27, "payout": 51.35,
+    "mcap": 97813, "price": 66700, "prevDps": 1850,
+    "divYield": 0.027736131934032984, "avgDps": 1350, "avgYield": 0.020239880059970013,
+    "grade": "C", "code": "047050"
+  },
+  {
+    "name": "쿠쿠홀딩스",
+    "sector": "필수소비재", "industry": "생활용품", "isHolding": true, "category": "생활용품",
+    "per": 7.08, "pbr": 0.68, "roe": 11.56, "payout": 33.09,
+    "mcap": 7806, "price": 26400, "prevDps": 1550,
+    "divYield": 0.058712121212121215, "avgDps": 1162.5, "avgYield": 0.04403409090909091,
+    "grade": "A", "code": "192400"
+  },
+  {
+    "name": "오리온홀딩스",
+    "sector": "필수소비재", "industry": "식음료", "isHolding": true, "category": "식음료",
+    "per": 10.69, "pbr": 0.5, "roe": 5.01, "payout": 54.69,
+    "mcap": 9892, "price": 24600, "prevDps": 1100,
+    "divYield": 0.044715447154471545, "avgDps": 837.5, "avgYield": 0.03404471544715447,
+    "grade": "A", "code": "001800"
+  },
+  {
+    "name": "LX홀딩스",
+    "sector": "산업재", "industry": "복합기업", "isHolding": true, "category": "복합기업",
+    "per": 4.6, "pbr": 0.31, "roe": 7.01, "payout": 16.63,
+    "mcap": 5035, "price": 9750, "prevDps": 290,
+    "divYield": 0.029743589743589743, "avgDps": 290, "avgYield": 0.029743589743589743,
+    "grade": "A", "code": "383800"
+  },
+  {
+    "name": "코웨이",
+    "sector": "필수소비재", "industry": "생활용품", "isHolding": false, "category": "생활용품",
+    "per": 10.15, "pbr": 1.7, "roe": 18.14, "payout": 22.22,
+    "mcap": 61752, "price": 93700, "prevDps": 1957,
+    "divYield": 0.02088580576307364, "avgDps": 1809.25, "avgYield": 0.01930896478121665,
+    "grade": "C", "code": "021240"
+  },
+  {
+    "name": "농심홀딩스",
+    "sector": "필수소비재", "industry": "식음료", "isHolding": true, "category": "식음료",
+    "per": 3.66, "pbr": 0.32, "roe": 9.03, "payout": 12.14,
+    "mcap": 3084, "price": 93500, "prevDps": 3000,
+    "divYield": 0.03208556149732621, "avgDps": 2625, "avgYield": 0.02807486631016043,
+    "grade": "C", "code": "072710"
+  },
+  {
+    "name": "하이트진로",
+    "sector": "필수소비재", "industry": "식음료", "isHolding": false, "category": "식음료",
+    "per": 31.67, "pbr": 1.15, "roe": 3.69, "payout": 117.86,
+    "mcap": 13879, "price": 16400, "prevDps": 700,
+    "divYield": 0.042682926829268296, "avgDps": 825, "avgYield": 0.05030487804878049,
+    "grade": "C", "code": "000080"
+  },
+  {
+    "name": "하이트진로홀딩스",
+    "sector": "필수소비재", "industry": "식음료", "isHolding": true, "category": "식음료",
+    "per": -89.87, "pbr": 0.39, "roe": -0.46, "payout": -297.23,
+    "mcap": 2010, "price": 8610, "prevDps": 350,
+    "divYield": 0.04065040650406504, "avgDps": 437.5, "avgYield": 0.0508130081300813,
+    "grade": "C", "code": "000070"
+  },
+  {
+    "name": "삼양사",
+    "sector": "소재", "industry": "화학", "isHolding": false, "category": "화학",
+    "per": -1.61, "pbr": 0.3, "roe": -18.8, "payout": -5.6,
+    "mcap": 4816, "price": 43300, "prevDps": 1750,
+    "divYield": 0.04041570438799076, "avgDps": 1625, "avgYield": 0.037528868360277134,
+    "grade": "C", "code": "145990"
+  },
+  {
+    "name": "빙그레",
+    "sector": "필수소비재", "industry": "식음료", "isHolding": false, "category": "식음료",
+    "per": 12.94, "pbr": 0.89, "roe": 7.58, "payout": 52.51,
+    "mcap": 9605, "price": 73100, "prevDps": 3300,
+    "divYield": 0.04514363885088919, "avgDps": 2675, "avgYield": 0.036593707250342,
+    "grade": "C", "code": "005180"
+  },
+  {
+    "name": "코오롱우",
+    "sector": "소재", "industry": "화학", "isHolding": true, "category": "화학",
+    "per": -4.33, "pbr": 0.38, "roe": -8.92, "payout": -4.92,
+    "mcap": 161, "price": 30200, "prevDps": 600,
+    "divYield": 0.019867549668874173, "avgDps": 600, "avgYield": 0.019867549668874173,
+    "grade": "C", "code": "002025"
+  },
+  {
+    "name": "CJ우",
+    "sector": "필수소비재", "industry": "식음료", "isHolding": true, "category": "식음료",
+    "per": 42.8, "pbr": 1.11, "roe": 2.69, "payout": 77.28,
+    "mcap": 1501, "price": 80400, "prevDps": 3350,
+    "divYield": 0.041666666666666664, "avgDps": 3000, "avgYield": 0.03731343283582089,
+    "grade": "B", "code": "001045"
+  },
+  {
+    "name": "롯데칠성우",
+    "sector": "필수소비재", "industry": "식음료", "isHolding": false, "category": "식음료",
+    "per": 29.64, "pbr": 0.92, "roe": 3.13, "payout": 72.39,
+    "mcap": 506, "price": 76800, "prevDps": 3405,
+    "divYield": 0.0443359375, "avgDps": 3380, "avgYield": 0.04401041666666667,
+    "grade": "B", "code": "005305"
+  },
+  {
+    "name": "HMM",
+    "sector": "산업재", "industry": "운송", "isHolding": false, "category": "운송",
+    "per": 10.49, "pbr": 0.73, "roe": 6.9, "payout": 35.15,
+    "mcap": 174974, "price": 20200, "prevDps": 700,
+    "divYield": 0.034653465346534656, "avgDps": 800, "avgYield": 0.039603960396039604,
+    "grade": "C", "code": "011200"
+  },
+  {
+    "name": "SK디스커버리우",
+    "sector": "소재", "industry": "화학", "isHolding": true, "category": "화학",
+    "per": 8.83, "pbr": 0.36, "roe": 4.49, "payout": 28.41,
+    "mcap": 462, "price": 40200, "prevDps": 2050,
+    "divYield": 0.05099502487562189, "avgDps": 1825, "avgYield": 0.04539800995024876,
+    "grade": "C", "code": "006125"
+  },
+  {
+    "name": "골프존",
+    "sector": "경기소비재", "industry": "레저", "isHolding": false, "category": "레저",
+    "per": 14.15, "pbr": 0.79, "roe": 5.83, "payout": 93.69,
+    "mcap": 4010, "price": 44200, "prevDps": 4000,
+    "divYield": 0.09049773755656108, "avgDps": 4250, "avgYield": 0.09615384615384616,
+    "grade": "B", "code": "215000"
+  },
+  {
+    "name": "골프존홀딩스",
+    "sector": "경기소비재", "industry": "레저", "isHolding": true, "category": "레저",
+    "per": 8.89, "pbr": 0.26, "roe": 3.23, "payout": 40.2,
+    "mcap": 1733, "price": 4635, "prevDps": 250,
+    "divYield": 0.05393743257820928, "avgDps": 207.5, "avgYield": 0.0447680690399137,
+    "grade": "B", "code": "121440"
+  },
+  {
+    "name": "도이치모터스",
+    "sector": "경기소비재", "industry": "자동차판매", "isHolding": false, "category": "자동차판매",
+    "per": 37.55, "pbr": 0.33, "roe": 0.9, "payout": 321.48,
+    "mcap": 1301, "price": 4815, "prevDps": 390,
+    "divYield": 0.08099688473520249, "avgDps": 375, "avgYield": 0.0778816199376947,
+    "grade": "C", "code": "067990"
+  },
+  {
+    "name": "아모레퍼시픽홀딩스3우C",
+    "sector": "필수소비재", "industry": "화장품", "isHolding": true, "category": "화장품",
+    "per": 20.21, "pbr": 0.69, "roe": 3.64, "payout": 30.5,
+    "mcap": 1279, "price": 21000, "prevDps": 667,
+    "divYield": 0.03176190476190476, "avgDps": 667, "avgYield": 0.03176190476190476,
+    "grade": "B", "code": "002797"
+  },
+  {
+    "name": "강원랜드",
+    "sector": "경기소비재", "industry": "레저", "isHolding": false, "category": "레저",
+    "per": 12.74, "pbr": 0.96, "roe": 8.11, "payout": 59.17,
+    "mcap": 35963, "price": 15370, "prevDps": 950,
+    "divYield": 0.06180871828236825, "avgDps": 850, "avgYield": 0.05530253741054001,
+    "grade": "C", "code": "035250"
+  },
+  {
+    "name": "LG생활건강우",
+    "sector": "필수소비재", "industry": "화장품", "isHolding": false, "category": "화장품",
+    "per": -45.44, "pbr": 0.79, "roe": -1.82, "payout": -33.58,
+    "mcap": 2694, "price": 103800, "prevDps": 2050,
+    "divYield": 0.0197495183044316, "avgDps": 3300, "avgYield": 0.031791907514450865,
+    "grade": "C", "code": "051905"
+  },
+  {
+    "name": "HS애드",
+    "sector": "통신서비스", "industry": "광고", "isHolding": false, "category": "광고",
+    "per": 8.34, "pbr": 0.67, "roe": 8.38, "payout": 51.29,
+    "mcap": 1103, "price": 7310, "prevDps": 550,
+    "divYield": 0.07523939808481532, "avgDps": 487.5, "avgYield": 0.06668946648426813,
+    "grade": "C", "code": "072130"
+  },
+  {
+    "name": "제일기획",
+    "sector": "통신서비스", "industry": "광고", "isHolding": false, "category": "광고",
+    "per": 11.64, "pbr": 1.35, "roe": 13.7, "payout": 60.02,
+    "mcap": 20707, "price": 18820, "prevDps": 1230,
+    "divYield": 0.06535600425079703, "avgDps": 1180, "avgYield": 0.06269925611052073,
+    "grade": "B", "code": "030000"
+  },
+  {
+    "name": "이노션",
+    "sector": "통신서비스", "industry": "광고", "isHolding": false, "category": "광고",
+    "per": 8.05, "pbr": 0.69, "roe": 8.88, "payout": 51.22,
+    "mcap": 7480, "price": 20800, "prevDps": 1175,
+    "divYield": 0.056490384615384616, "avgDps": 1150, "avgYield": 0.055288461538461536,
+    "grade": "B", "code": "214320"
+  },
+  {
+    "name": "삼성카드",
+    "sector": "금융", "industry": "여신", "isHolding": false, "category": "여신",
+    "per": 10.03, "pbr": 0.67, "roe": 7.45, "payout": 46.26,
+    "mcap": 50572, "price": 47800, "prevDps": 2800,
+    "divYield": 0.058577405857740586, "avgDps": 2650, "avgYield": 0.05543933054393305,
+    "grade": "B", "code": "029780"
+  },
+  {
+    "name": "넥스틸",
+    "sector": "소재", "industry": "철강", "isHolding": false, "category": "철강",
+    "per": 6.57, "pbr": 0.51, "roe": 7.76, "payout": 83.31,
+    "mcap": 4244, "price": 17520, "prevDps": 1155,
+    "divYield": 0.06592465753424658, "avgDps": 677, "avgYield": 0.038641552511415524,
+    "grade": "C", "code": "092480"
+  },
+  {
+    "name": "메가스터디",
+    "sector": "경기소비재", "industry": "교육", "isHolding": false, "category": "교육",
+    "per": 4.79, "pbr": 0.37, "roe": 8.36, "payout": 55.15,
+    "mcap": 1258, "price": 12850, "prevDps": 1320,
+    "divYield": 0.10272373540856031, "avgDps": 1005, "avgYield": 0.07821011673151751,
+    "grade": "C", "code": "072870"
+  },
+  {
+    "name": "동국홀딩스",
+    "sector": "소재", "industry": "철강", "isHolding": true, "category": "철강",
+    "per": 14.74, "pbr": 0.13, "roe": 0.94, "payout": 19.35,
+    "mcap": 2423, "price": 11400, "prevDps": 100,
+    "divYield": 0.008771929824561403, "avgDps": 425, "avgYield": 0.03728070175438596,
+    "grade": "C", "code": "001230"
+  }
+]

@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // appData: 서버(Admin SDK)만 접근
+    match /appData/{doc} {
+      allow read, write: if false;
+    }
+    // explanations: 서버만 접근
+    match /explanations/{doc} {
+      allow read, write: if false;
+    }
+    // userData: 서버(Admin SDK)만 접근 — 클라이언트 직접 접근 차단
+    match /userData/{uid}/{document=**} {
+      allow read, write: if false;
+    }
+    // users: 서버만 접근
+    match /users/{userId} {
+      allow read, write: if false;
+    }
+  }
+}
