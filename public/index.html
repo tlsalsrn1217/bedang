@@ -324,6 +324,54 @@
   .sig{display:inline-flex;align-items:center;gap:4px}
   #weightChart path{transform-origin:120px 120px;transition:transform .18s cubic-bezier(.2,.7,.2,1),opacity .18s}
   #weightChart path:hover{transform:scale(1.06)!important;opacity:1!important;cursor:pointer}
+  /* ── 기준 지표 FAB + 팝업 (블루 전용) ── */
+  .bm-fab{position:fixed;bottom:28px;right:28px;z-index:60;width:52px;height:52px;border-radius:50%;background:var(--accent);border:0;color:#fff;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(49,130,246,.5);transition:transform .18s cubic-bezier(.2,.7,.2,1),box-shadow .18s,background .15s}
+  .bm-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(49,130,246,.65);background:var(--accent-soft)}
+  .bm-fab.visible{display:flex}
+  /* 팝업 오버레이 */
+  .bm-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:flex-end;padding:90px 28px 28px;z-index:59;box-sizing:border-box}
+  .bm-ov.on{display:flex}
+  /* 팝업 박스 */
+  .bm-popup{background:var(--paper);border:1px solid rgba(49,130,246,.22);border-radius:18px;width:420px;max-width:calc(100vw - 56px);max-height:calc(100vh - 118px);overflow-y:auto;padding:22px 22px 20px;animation:bmSlide .25s cubic-bezier(.2,.7,.2,1);box-shadow:0 16px 48px rgba(0,0,0,.45)}
+  @keyframes bmSlide{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+  .cp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .cp-title{font-size:15px;font-weight:800;color:var(--accent-soft);letter-spacing:-.03em}
+  .cp-close{background:none;border:0;color:var(--dim);font-size:22px;cursor:pointer;padding:0 2px;line-height:1;transition:.12s;border-radius:6px}
+  .cp-close:hover{background:var(--paper2);color:var(--txt)}
+  .cp-desc{font-size:12px;color:var(--soft);line-height:1.7;margin-bottom:10px}
+  .cp-keys{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+  .cp-key{font-size:10px;font-weight:800;padding:2px 10px;border-radius:10px;background:rgba(49,130,246,.14);color:var(--accent-soft);border:1px solid rgba(49,130,246,.3);letter-spacing:.01em}
+  /* 지표 행 */
+  .bm-row{padding:11px 0;border-bottom:1px solid var(--line2)}
+  .bm-row:last-child{border-bottom:none;padding-bottom:0}
+  .bm-hdr{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .bm-name{font-size:13px;font-weight:700;color:var(--txt)}
+  .bm-dir{font-size:10px;color:var(--accent-soft);background:rgba(49,130,246,.08);padding:2px 7px;border-radius:4px;font-weight:600;border:1px solid rgba(49,130,246,.18)}
+  /* 구간 알약 */
+  .bm-zones{display:flex;gap:4px;margin-bottom:8px}
+  .bm-z{flex:1;padding:5px 4px;border-radius:7px;text-align:center;border:1px solid transparent;transition:.1s}
+  .bm-z .zt{font-size:9px;font-weight:800;letter-spacing:.02em;display:block;margin-bottom:1px}
+  .bm-z .zr{font-size:10px;font-weight:600;display:block;line-height:1.3}
+  .bm-z.lv0{background:rgba(49,130,246,.08);border-color:rgba(49,130,246,.2);color:var(--soft)}
+  .bm-z.lv1{background:rgba(49,130,246,.04);border-color:rgba(49,130,246,.12);color:var(--dim)}
+  .bm-z.lv2{background:rgba(49,130,246,.02);border-color:rgba(49,130,246,.08);color:var(--dim)}
+  .bm-z.lv3{background:transparent;border-color:var(--line);color:var(--dim);opacity:.7}
+  .bm-z.act{background:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 2px 10px rgba(49,130,246,.35)!important}
+  .bm-z.act .zt,.bm-z.act .zr{color:#fff!important}
+  .bm-z.db-act{border-width:2px;border-color:rgba(49,130,246,.6)!important}
+  /* 평균값 목록 */
+  .bm-vals{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}
+  .bm-val{display:flex;align-items:center;gap:5px}
+  .bm-val-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .bm-val-lbl{color:var(--dim);font-size:11px}
+  .bm-val-num{font-variant-numeric:tabular-nums;font-weight:600;color:var(--txt)}
+  .bm-badge{font-size:9px;font-weight:800;padding:1px 5px;border-radius:3px;letter-spacing:.02em}
+  .bm-badge.lv0{background:rgba(49,130,246,.18);color:var(--accent-soft)}
+  .bm-badge.lv1{background:rgba(49,130,246,.1);color:var(--blue)}
+  .bm-badge.lv2{background:rgba(49,130,246,.05);color:var(--soft)}
+  .bm-badge.lv3{background:transparent;border:1px solid var(--line);color:var(--dim)}
+  .bench-loading{color:var(--dim);font-size:12px;padding:14px 0;text-align:center}
+  @media(max-width:580px){.bm-popup{width:100%;max-width:100%;border-radius:18px 18px 0 0;max-height:80vh}.bm-ov{padding:0;align-items:flex-end;justify-content:stretch}.bm-fab{bottom:20px;right:20px}.bm-z .zr{font-size:9px}}
 </style></head><body>
 <button class="nav-toggle" id="navToggle" onclick="toggleNav()"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
 <div class="nav-backdrop" id="navBackdrop" onclick="toggleNav()"></div>
@@ -331,7 +379,7 @@
   <nav class="leftnav" id="leftnav">
     <div class="leftnav-nav" style="padding-top:64px">
       <a class="leftnav-btn active" href="index.html">배당주투자가이드웹</a>
-      <a class="leftnav-btn" href="../사용안내서.html">가이드북(전자책)</a>
+      <a class="leftnav-btn" href="/사용안내서.html">가이드북(전자책)</a>
     </div>
   </nav>
   <div class="main-content">
@@ -796,9 +844,200 @@ function renderTabs(){
     }
   }
   tabsEl.innerHTML=html;
+  // FAB: 전체 탭이면 숨김, 섹터 선택 시 표시
+  const fab=document.getElementById('bmFab');
+  if(fab)fab.classList.toggle('visible', curSector!=='전체');
 }
 function selectSector(s){curSector=s;curIndustry=null;renderTabs();renderRows();}
 function selectIndustry(i){curIndustry=i;renderTabs();renderRows();}
+
+/* ══════════════════════════════════════════════════
+   카테고리 기준 지표 패널 — 블루 전용, 토글식
+══════════════════════════════════════════════════ */
+
+// divYield는 소수(0.05)로 저장, tiers는 %(5)로 정의 → 정규화
+function _scaledVal(val, metric) {
+  if (val === null || val === undefined || !isFinite(val)) return null;
+  return metric.label === '배당률' ? val * 100 : val;
+}
+
+// tier 판정: 'ex' | 'good' | 'fair' | 'weak'
+function benchTier(val, metric) {
+  const sv = _scaledVal(val, metric);
+  if (sv === null) return null;
+  const {dir, tiers} = metric;
+  if (dir === 'lower') {
+    if (sv <= tiers[0]) return 'ex';
+    if (sv <= tiers[1]) return 'good';
+    if (sv <= tiers[2]) return 'fair';
+    return 'weak';
+  }
+  if (dir === 'higher') {
+    if (sv >= tiers[0]) return 'ex';
+    if (sv >= tiers[1]) return 'good';
+    if (sv >= tiers[2]) return 'fair';
+    return 'weak';
+  }
+  // range: [el,eh, gl,gh, fl,fh]
+  const [el,eh,gl,gh,fl,fh] = tiers;
+  if (sv >= el && sv <= eh) return 'ex';
+  if (sv >= gl && sv <= gh) return 'good';
+  if (sv >= fl && sv <= fh) return 'fair';
+  return 'weak';
+}
+
+// 표시용 포맷
+function fmtBV(val, metric) {
+  if (val === null || val === undefined) return '-';
+  if (metric.label === '배당률') return (val * 100).toFixed(1) + '%';
+  if (metric.unit === '%') return val.toFixed(1) + '%';
+  return val.toFixed(2) + metric.unit;
+}
+
+// 구간 알약 범위 텍스트
+function zoneRangeText(t, metric) {
+  const {dir, tiers, unit, label} = metric;
+  const f = v => label === '배당률' ? v + '%' : v + unit;
+  if (dir === 'lower') {
+    return {ex:`<${f(tiers[0])}`, good:`${f(tiers[0])}~${f(tiers[1])}`, fair:`${f(tiers[1])}~${f(tiers[2])}`, weak:`>${f(tiers[2])}`}[t] || '';
+  }
+  if (dir === 'higher') {
+    return {ex:`>${f(tiers[0])}`, good:`${f(tiers[1])}~${f(tiers[0])}`, fair:`${f(tiers[2])}~${f(tiers[1])}`, weak:`<${f(tiers[2])}`}[t] || '';
+  }
+  return {ex:`${f(tiers[0])}~${f(tiers[1])}`, good:`${f(tiers[2])}~${f(tiers[3])}`, fair:`${f(tiers[4])}~${f(tiers[5])}`, weak:'그 외'}[t] || '';
+}
+
+// tier → 알약 level class (0=우수, 1=양호, 2=보통, 3=취약)
+const TIER_IDX = {ex:0, good:1, fair:2, weak:3};
+const TIER_KO  = {ex:'우수', good:'양호', fair:'보통', weak:'취약'};
+const DIR_KO   = {lower:'↓ 낮을수록', higher:'↑ 높을수록', range:'↔ 적정 범위'};
+
+function renderBenchMetric(key, metric, uAvg, sAvg, mAvg) {
+  const uVal = uAvg?.[key] ?? null;
+  const sVal = sAvg?.[key] ?? null;
+  const mVal = mAvg?.[key] ?? null;
+  const uTier = benchTier(uVal, metric);
+  const sTier = benchTier(sVal, metric);
+  const mTier = benchTier(mVal, metric);
+
+  const tiers = ['ex','good','fair','weak'];
+
+  const zones = tiers.map(t => {
+    const lvCls = `lv${TIER_IDX[t]}`;
+    const isUser = uTier === t;
+    const isDb   = sTier === t;
+    const cls = `bm-z ${lvCls}${isUser ? ' act' : ''}${isDb && !isUser ? ' db-act' : ''}`;
+    // DB 구간 표시: user와 다르면 알약 이름 옆에 작은 'DB' 표기
+    const extraTag = isDb && !isUser ? `<span style="font-size:8px;opacity:.75;margin-left:2px">DB</span>` : '';
+    return `<div class="${cls}">
+      <span class="zt">${TIER_KO[t]}${extraTag}</span>
+      <span class="zr">${zoneRangeText(t, metric)}</span>
+    </div>`;
+  }).join('');
+
+  // 평균값 행
+  const mkVal = (val, tier, dotColor, label) => {
+    if (val === null) return '';
+    const lvCls = tier ? `lv${TIER_IDX[tier]}` : 'lv3';
+    return `<span class="bm-val">
+      <span class="bm-val-dot" style="background:${dotColor}"></span>
+      <span class="bm-val-lbl">${label}</span>
+      <span class="bm-val-num">${fmtBV(val, metric)}</span>
+      <span class="bm-badge ${lvCls}">${tier ? TIER_KO[tier] : '-'}</span>
+    </span>`;
+  };
+
+  const hasMarket = mVal !== null;
+
+  return `<div class="bm-row">
+    <div class="bm-hdr">
+      <span class="bm-name">${metric.label}</span>
+      <span class="bm-dir">${DIR_KO[metric.dir] || ''} 좋음</span>
+    </div>
+    <div class="bm-zones">${zones}</div>
+    <div class="bm-vals">
+      ${mkVal(uVal, uTier, 'var(--accent)', '내 종목')}
+      ${mkVal(sVal, sTier, 'rgba(75,149,255,.5)', 'DB 전체')}
+      ${hasMarket ? mkVal(mVal, mTier, 'rgba(49,130,246,.3)', '시장') : ''}
+    </div>
+  </div>`;
+}
+
+const DEFAULT_BM = {
+  desc: '일반적인 배당주 평가 기준입니다. 업종 탭을 선택하면 더 세밀한 기준을 볼 수 있습니다.',
+  keyMetrics: ['PER', 'PBR', '배당률'],
+  metrics: {
+    per:      { label:'PER',    unit:'배', dir:'lower',  tiers:[12,18,25] },
+    pbr:      { label:'PBR',    unit:'배', dir:'lower',  tiers:[1.0,1.5,2.5] },
+    roe:      { label:'ROE',    unit:'%',  dir:'higher', tiers:[12,8,5] },
+    divYield: { label:'배당률', unit:'%',  dir:'higher', tiers:[4,3,2] },
+    payout:   { label:'배당성향', unit:'%', dir:'range', tiers:[25,55,20,65,10,75] },
+  }
+};
+
+function openBmPopup() {
+  if (curSector === '전체') return;
+  const ov = document.getElementById('bmOv');
+  ov.classList.add('on');
+  document.body.style.overflow = 'hidden';
+  loadBmPopup();
+}
+
+function closeBmPopup() {
+  document.getElementById('bmOv').classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+async function loadBmPopup() {
+  const popup = document.getElementById('bmPopup');
+  const industry = curIndustry || null;
+  const sector   = curSector;
+  const label    = industry || sector;
+
+  popup.innerHTML = `<div class="bench-loading">기준 지표 불러오는 중…</div>`;
+
+  try {
+    let bm, uAvg, sAvg, mAvg;
+
+    if (location.protocol !== 'file:') {
+      const params = new URLSearchParams();
+      if (sector)   params.set('sector', sector);
+      if (industry) params.set('industry', industry);
+      const r = await apiFetch('/api/category-stats?' + params.toString());
+      if (r.ok) { const j = await r.json(); bm = j.benchmarks; uAvg = j.userAvg; sAvg = j.seedAvg; mAvg = j.marketAvg; }
+    }
+
+    if (!uAvg || uAvg.count === 0) {
+      const fl = DATA.filter(d => industry ? (d.industry||d.category)===industry : (d.sector||d.category)===sector);
+      const av = (arr,k) => { const vs=arr.map(x=>parseFloat(x[k])).filter(isFinite); return vs.length?+(vs.reduce((a,b)=>a+b,0)/vs.length).toFixed(4):null; };
+      uAvg = { count:fl.length, per:av(fl,'per'), pbr:av(fl,'pbr'), roe:av(fl,'roe'), divYield:av(fl,'divYield'), payout:av(fl,'payout') };
+    }
+    bm = bm || DEFAULT_BM;
+
+    const KEYS = ['per','pbr','roe','divYield','payout'];
+    const rows = KEYS.map(k => bm.metrics[k] ? renderBenchMetric(k, bm.metrics[k], uAvg, sAvg, mAvg) : '').join('');
+    const keys = (bm.keyMetrics||[]).map(m => `<span class="cp-key">★ ${m}</span>`).join('');
+    const mktNote = mAvg
+      ? `<span style="color:rgba(75,149,255,.7);font-size:10px">시장: ${mAvg.source||'네이버금융'} ${mAvg.count||''}종목</span>`
+      : '';
+
+    popup.innerHTML = `
+      <div class="cp-head">
+        <span class="cp-title">${label} 기준 지표</span>
+        <button class="cp-close" onclick="closeBmPopup()">×</button>
+      </div>
+      <div class="cp-desc">${bm.desc}</div>
+      <div class="cp-keys">${keys}</div>
+      <div style="font-size:11px;color:var(--dim);margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:4px;vertical-align:middle"></span>내 종목 ${uAvg?.count||0}개</span>
+        <span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:rgba(75,149,255,.5);margin-right:4px;vertical-align:middle"></span>DB 전체 ${sAvg?.count||0}개</span>
+        ${mAvg?`<span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:rgba(49,130,246,.3);border:1px solid var(--accent-soft);margin-right:4px;vertical-align:middle"></span>${mktNote}</span>`:''}
+      </div>
+      ${rows}`;
+  } catch (e) {
+    popup.innerHTML = `<div class="bench-loading">로드 실패 — 백엔드를 확인하세요</div>`;
+  }
+}
 function renderRows(){
   let filtered=DATA;
   if(curSector!=='전체')filtered=filtered.filter(d=>(d.sector||d.category)===curSector);
@@ -1775,15 +2014,31 @@ async function checkAuth(){
   try{
     const r=await apiFetch('/api/me',{headers:_authToken?{Authorization:`Bearer ${_authToken}`}:{}});
     const{user}=await r.json();
-    // 토큰이 있는데 서버가 null 반환 → 만료된 토큰 정리
     if(!user&&_authToken){localStorage.removeItem('bedang_auth');_authToken=null;}
     updateLoginUI(user);
   }catch{updateLoginUI(null);}
 }
-checkAuth().then(tryConnectBackend);
 // ────────────────────────────────────────────────────────────────
+
+checkAuth().then(tryConnectBackend);
 function toggleNav(){
   document.getElementById('leftnav').classList.toggle('open');
   document.getElementById('navBackdrop').classList.toggle('on');
 }
-</script></div></div></body></html>
+</script></div></div>
+
+<!-- 기준 지표 FAB -->
+<button class="bm-fab" id="bmFab" onclick="openBmPopup()" title="카테고리 기준 지표">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+</button>
+
+<!-- 기준 지표 팝업 오버레이 -->
+<div class="bm-ov" id="bmOv" onclick="if(event.target===this)closeBmPopup()">
+  <div class="bm-popup" id="bmPopup">
+    <div class="bench-loading">불러오는 중…</div>
+  </div>
+</div>
+
+</body></html>

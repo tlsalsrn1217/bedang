@@ -1,0 +1,1204 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<title>배당투자AI 사용 가이드</title>
+<style>
+:root{
+  --bg:#0e1116;--paper:#161b22;--line:#262d39;--line2:#1d232e;
+  --txt:#dfe6ee;--soft:#aeb9c7;--dim:#7c8896;
+  --accent:#3182f6;--accent-soft:#4b95ff;--good:#3fb950;--warn:#d8a838;--bad:#e5534b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Pretendard',-apple-system,system-ui,sans-serif;font-weight:400;line-height:1.85;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+
+/* ── progress ── */
+#progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--good));z-index:100;width:0;transition:width .3s ease}
+
+/* ── left sidebar ── */
+aside{position:fixed;top:0;left:0;width:220px;height:100vh;overflow-y:auto;background:var(--paper);border-right:1px solid var(--line);z-index:90;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:0 0 40px rgba(0,0,0,.5)}
+aside.open{transform:none}
+.sidenav{padding:64px 12px 12px}
+.sidenav-btn{display:flex;align-items:center;width:100%;background:none;border:none;border-radius:10px;padding:10px 12px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--soft);letter-spacing:-.02em;transition:.13s;text-align:left;text-decoration:none;margin-bottom:2px}
+.sidenav-btn:hover{background:var(--line2);color:var(--txt)}
+.sidenav-btn.active{background:rgba(49,130,246,.13);color:var(--accent-soft)}
+.menubtn{display:flex;position:fixed;top:14px;left:14px;z-index:95;background:var(--paper);color:var(--soft);border:1px solid var(--line);width:40px;height:40px;border-radius:10px;align-items:center;justify-content:center;cursor:pointer;transition:.15s}
+.menubtn:hover{background:var(--line2);color:var(--txt);border-color:var(--accent)}
+.backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:85}
+.backdrop.on{display:block}
+
+/* ── right TOC ── */
+#toc-panel{position:fixed;top:0;right:0;width:256px;height:100vh;overflow-y:auto;background:var(--paper);border-left:1px solid var(--line);z-index:30}
+.brand{padding:24px 22px 18px;border-bottom:1px solid var(--line2);margin-bottom:10px}
+.brand .logo{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.04em;margin-bottom:6px}
+.brand h2{font-size:16px;font-weight:800;letter-spacing:-.03em;line-height:1.35}
+.brand p{font-size:11px;color:var(--dim);margin-top:5px;font-weight:500}
+.toc{padding:4px 12px}
+.toc-item{display:flex;gap:10px;align-items:baseline;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--soft);transition:.13s;text-decoration:none}
+.toc-item:hover{background:var(--line2);color:var(--txt)}
+.toc-item.on{background:rgba(49,130,246,.12);color:var(--accent-soft)}
+.toc-item.on .toc-num{color:var(--accent)}
+.toc-num{font-size:10px;font-weight:700;color:var(--dim);min-width:34px;letter-spacing:.02em}
+.toc-title{font-size:12.5px;font-weight:600;letter-spacing:-.02em}
+
+/* ── reader ── */
+main{display:flex;justify-content:center;margin-right:256px}
+.reader{max-width:720px;width:100%;padding:70px 48px 120px 56px}
+.chapter{display:none}
+.chapter.on{display:block;animation:chapterIn .5s cubic-bezier(.22,.61,.36,1) both}
+@keyframes chapterIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.ch-head{margin-bottom:38px;padding-bottom:26px;border-bottom:1px solid var(--line)}
+.ch-num{display:inline-block;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.08em;margin-bottom:12px}
+.ch-title{font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.25}
+.ch-body{font-size:16px;color:var(--soft)}
+.ch-body p{margin:0 0 20px}
+.ch-body .lead{font-size:18.5px;color:var(--txt);font-weight:600;line-height:1.7;margin-bottom:28px;letter-spacing:-.02em}
+.ch-body h3{font-size:19px;font-weight:700;color:var(--txt);margin:40px 0 14px;letter-spacing:-.03em}
+.ch-body strong{color:var(--txt);font-weight:700}
+.feature-list{list-style:none;margin:0 0 22px;padding:0}
+.feature-list li{position:relative;padding:11px 0 11px 26px;border-bottom:1px solid var(--line2);font-size:15.5px}
+.feature-list li:before{content:"";position:absolute;left:4px;top:19px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.callout{background:linear-gradient(135deg,rgba(49,130,246,.08),rgba(49,130,246,.03));border:1px solid rgba(49,130,246,.22);border-radius:14px;padding:20px 22px;margin:28px 0}
+.callout-title{font-size:13px;font-weight:700;color:var(--accent-soft);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.callout-title:before{content:"!";display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:var(--accent);color:#fff;border-radius:50%;font-size:11px;font-weight:800}
+.callout p{margin:0;font-size:14.5px;color:var(--soft);line-height:1.75}
+.warn-box{background:rgba(229,83,75,.06);border:1px solid rgba(229,83,75,.22);border-radius:12px;padding:16px 18px;margin:20px 0}
+.warn-box .wt{font-size:12px;font-weight:700;color:var(--bad);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em}
+.warn-box p{font-size:14px;color:var(--soft);margin:0;line-height:1.7}
+.chnav{display:flex;justify-content:space-between;gap:14px;margin-top:60px;padding-top:30px;border-top:1px solid var(--line)}
+.chnav button{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 20px;cursor:pointer;text-align:left;transition:.15s;color:var(--txt);font-family:inherit}
+.chnav button:hover:not(:disabled){border-color:var(--accent);background:rgba(49,130,246,.06)}
+.chnav button:disabled{opacity:.3;cursor:default}
+.chnav .nlabel{font-size:11px;color:var(--dim);font-weight:600;margin-bottom:4px}
+.chnav .ntitle{font-size:13px;font-weight:700;letter-spacing:-.02em}
+.chnav .next{text-align:right}
+.back-btn{display:inline-flex;align-items:center;gap:7px;background:none;border:1px solid var(--line);border-radius:8px;padding:7px 13px;color:var(--soft);font-size:13px;font-weight:600;cursor:pointer;transition:.13s;margin-bottom:38px;letter-spacing:-.02em;text-decoration:none}
+.back-btn:hover{border-color:var(--accent);color:var(--accent-soft)}
+
+/* ═══════════════════════════════════
+   MOCKUP SYSTEM
+═══════════════════════════════════ */
+.mockup{background:#0d1117;border:1px solid #30363d;border-radius:16px;overflow:hidden;margin:36px 0;box-shadow:0 24px 64px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03) inset;animation:none}
+.mock-chrome{background:#161b22;border-bottom:1px solid #30363d;padding:11px 16px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.mock-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.mock-title{font-size:11px;color:#7c8896;margin-left:6px;font-weight:500;letter-spacing:-.01em;flex:1}
+.mock-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.04em}
+.mock-body{padding:18px 20px}
+
+/* tabs */
+.mock-tabs{display:flex;gap:2px;border-bottom:1px solid #262d39;margin-bottom:18px;flex-wrap:wrap}
+.mock-tab{background:none;border:none;border-bottom:2px solid transparent;color:#7c8896;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:.13s;margin-bottom:-1px;font-family:inherit;letter-spacing:-.01em}
+.mock-tab.on{color:#4b95ff;border-color:#3182f6}
+.mock-tab:hover:not(.on){color:#aeb9c7}
+
+/* score bars */
+.mock-score-section{margin:14px 0}
+.mock-score-row{display:flex;align-items:center;gap:10px;padding:7px 0}
+.mock-score-label{font-size:10.5px;color:#7c8896;font-weight:700;width:70px;flex-shrink:0;letter-spacing:.01em}
+.mock-score-label.core{color:#aeb9c7}
+.mock-score-track{flex:1;height:6px;background:#1c2330;border-radius:4px;overflow:hidden}
+.mock-score-fill{height:100%;border-radius:4px;width:0;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.mock-score-val{font-size:11.5px;color:#dfe6ee;font-weight:700;width:28px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* stock rows */
+.mock-stock-row{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:9px;cursor:pointer;transition:.13s;border:1px solid transparent;margin-bottom:2px}
+.mock-stock-row:hover,.mock-stock-row.sel{background:rgba(255,255,255,.04);border-color:#30363d}
+.mock-rank{font-size:11px;color:#7c8896;width:18px;text-align:center;flex-shrink:0;font-variant-numeric:tabular-nums}
+.mock-name{font-size:12.5px;font-weight:700;color:#dfe6ee;letter-spacing:-.02em;flex:1}
+.mock-cat{font-size:9px;color:#7c8896;background:#1c2330;padding:2px 5px;border-radius:3px;font-weight:600;margin-left:5px;white-space:nowrap}
+.mock-num{font-size:11.5px;color:#aeb9c7;font-variant-numeric:tabular-nums;width:44px;text-align:right;flex-shrink:0}
+.mock-bar-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.mock-bar-track{width:44px;height:4px;background:#262d39;border-radius:3px;overflow:hidden}
+.mock-bar-fill{height:100%;border-radius:3px;width:0;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.mock-grade{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.gA{background:rgba(63,185,80,.15);color:#3fb950}
+.gB{background:rgba(216,168,56,.15);color:#d8a838}
+.gC{background:rgba(229,83,75,.13);color:#e5534b}
+
+/* category filter */
+.mock-cats{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.mock-cat-btn{background:#1c2330;border:1px solid #262d39;color:#7c8896;padding:4px 10px;border-radius:16px;font-size:11px;cursor:pointer;font-weight:600;transition:.12s;font-family:inherit}
+.mock-cat-btn.on{background:rgba(49,130,246,.15);color:#4b95ff;border-color:rgba(49,130,246,.35);font-weight:700}
+
+/* metrics grid */
+.mock-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
+.mock-metric{background:#1c2330;border:1px solid #1d232e;border-radius:9px;padding:10px 12px;animation:none}
+.mock-metric .ml{font-size:9px;color:#7c8896;text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:4px}
+.mock-metric .mv{font-size:17px;font-weight:800;color:#dfe6ee;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+
+/* AI block */
+.mock-ai-box{background:rgba(49,130,246,.06);border:1px solid rgba(49,130,246,.18);border-radius:11px;padding:14px 16px;margin-top:14px}
+.mock-ai-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mock-ai-dot{width:7px;height:7px;border-radius:50%;background:#4b95ff;flex-shrink:0;animation:aiPulse 1.4s ease-in-out infinite}
+@keyframes aiPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+.mock-ai-label{font-size:10px;font-weight:700;color:#4b95ff;text-transform:uppercase;letter-spacing:.07em}
+.mock-ai-text{font-size:12.5px;color:#aeb9c7;line-height:1.7;min-height:56px}
+.cursor::after{content:'▋';color:#4b95ff;animation:blink .8s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.ai-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;margin-right:4px;letter-spacing:.04em;vertical-align:middle}
+.ai-good{background:rgba(63,185,80,.15);color:#3fb950}
+.ai-bad{background:rgba(229,83,75,.12);color:#e5534b}
+.ai-info{background:rgba(49,130,246,.12);color:#4b95ff}
+
+/* portfolio stat cards */
+.mock-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.mock-stat{background:#1c2330;border:1px solid #1d232e;border-radius:10px;padding:12px 14px}
+.mock-stat .sl{font-size:9px;color:#7c8896;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.mock-stat .sv{font-size:20px;font-weight:800;color:#dfe6ee;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.mock-stat .sd{font-size:10.5px;margin-top:2px;font-weight:600}
+
+/* signal badges */
+.mock-signal{font-size:10px;font-weight:700;padding:3px 9px;border-radius:16px;white-space:nowrap;flex-shrink:0}
+.sig-buy{background:rgba(63,185,80,.14);color:#3fb950;border:1px solid rgba(63,185,80,.28)}
+.sig-sell{background:rgba(229,83,75,.11);color:#e5534b;border:1px solid rgba(229,83,75,.28)}
+.sig-sector{background:rgba(216,168,56,.11);color:#d8a838;border:1px solid rgba(216,168,56,.28)}
+.mock-portfolio-row{display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:9px;border:1px solid #1d232e;margin-bottom:5px;background:#111620}
+
+/* chart bars */
+.mock-chart{display:flex;align-items:flex-end;gap:6px;height:90px;padding-bottom:22px;position:relative;border-bottom:1px solid #262d39}
+.mock-chart-bar{flex:1;border-radius:4px 4px 0 0;min-width:0;height:0;transition:height 1.3s cubic-bezier(.4,0,.2,1)}
+.mock-chart-bar-label{font-size:9px;color:#7c8896;font-weight:600;text-align:center;margin-top:5px}
+.mock-chart-val{font-size:9px;color:#aeb9c7;font-weight:700;text-align:center;margin-top:2px}
+
+/* sliders */
+.mock-slider-row{margin:14px 0}
+.mock-slider-header{display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:7px}
+.mock-slider-name{color:#aeb9c7}
+.mock-slider-val{color:#4b95ff;font-variant-numeric:tabular-nums}
+input[type=range].mock-range{width:100%;height:5px;border-radius:3px;background:#1c2330;outline:none;-webkit-appearance:none;appearance:none;cursor:pointer}
+input[type=range].mock-range::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#4b95ff;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(49,130,246,.5)}
+input[type=range].mock-range::-webkit-slider-runnable-track{border-radius:3px}
+
+/* sidebar preview */
+.mock-sidebar-demo{display:flex;gap:0;position:relative;overflow:hidden;border-radius:12px}
+.mock-sidebar-panel{width:150px;background:#161b22;border-right:1px solid #30363d;padding:10px 8px;flex-shrink:0;transform:translateX(-150px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.mock-sidebar-panel.show{transform:none}
+.mock-sidebar-link{display:block;padding:8px 10px;border-radius:7px;font-size:11px;font-weight:600;color:#7c8896;margin-bottom:2px;cursor:pointer;transition:.12s;text-decoration:none}
+.mock-sidebar-link:hover,.mock-sidebar-link.on{background:rgba(49,130,246,.13);color:#4b95ff}
+.mock-main-area{flex:1;min-width:0;padding:14px}
+
+/* header in mockup */
+.mock-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid #262d39;margin-bottom:14px}
+.mock-h1{font-size:14px;font-weight:800;color:#dfe6ee;letter-spacing:-.03em}
+.mock-h1 span{color:#4b95ff}
+.mock-sub{font-size:9px;color:#7c8896;margin-top:2px}
+.mock-refresh{background:#3182f6;border:none;color:#fff;padding:5px 11px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit}
+.mock-menu-btn{background:#161b22;border:1px solid #30363d;color:#aeb9c7;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:13px}
+
+/* market dot */
+.market-on{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:mPulse 1.5s ease-in-out infinite;display:inline-block;margin-right:4px;vertical-align:middle}
+@keyframes mPulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* score preview box */
+.score-preview{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:14px 16px;margin-top:16px;display:flex;align-items:center;gap:16px}
+.sp-label{font-size:11px;color:#7c8896;font-weight:600}
+.sp-val{font-size:28px;font-weight:800;color:#dfe6ee;letter-spacing:-.04em;font-variant-numeric:tabular-nums;transition:color .3s}
+.sp-grade{font-size:13px;font-weight:700;padding:3px 9px;border-radius:6px}
+
+/* stagger animation helpers */
+.stagger>*{opacity:0;transform:translateY(10px);transition:opacity .4s ease,transform .4s ease}
+.stagger.go>*{opacity:1;transform:none}
+.stagger.go>*:nth-child(1){transition-delay:.05s}
+.stagger.go>*:nth-child(2){transition-delay:.13s}
+.stagger.go>*:nth-child(3){transition-delay:.21s}
+.stagger.go>*:nth-child(4){transition-delay:.29s}
+.stagger.go>*:nth-child(5){transition-delay:.37s}
+.stagger.go>*:nth-child(6){transition-delay:.45s}
+
+/* mock table */
+.mock-table{width:100%;border-collapse:collapse;font-size:10.5px}
+.mock-table th{text-align:left;color:#7c8896;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 6px;border-bottom:1px solid #262d39;white-space:nowrap}
+.mock-table th.num{text-align:right}
+.mock-table th.core{color:#4b95ff}
+.mock-table td{padding:8px 6px;border-bottom:1px solid #1d232e;vertical-align:middle}
+.mock-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.mock-table td.pos{color:#3fb950;font-weight:700}
+.mock-table td.neg{color:#e5534b;font-weight:700}
+.mock-table tr.mrow{cursor:pointer;transition:.1s}
+.mock-table tr.mrow:hover{background:rgba(255,255,255,.025)}
+/* scenario buttons */
+.mock-scenario{display:flex;gap:5px;margin-bottom:12px}
+.mock-sc-btn{flex:1;background:#1c2330;border:1px solid #262d39;color:#7c8896;padding:5px 8px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;transition:.12s}
+.mock-sc-btn.on{background:rgba(49,130,246,.15);color:#4b95ff;border-color:rgba(49,130,246,.35)}
+/* AI recommend box */
+.mock-airec-btn{width:100%;background:#3182f6;border:none;color:#fff;padding:11px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:-.01em;box-shadow:0 4px 14px rgba(49,130,246,.4);margin-bottom:14px}
+/* ex-row style */
+.mock-ex-row{display:flex;gap:8px;margin:7px 0;align-items:flex-start;font-size:11px;line-height:1.65}
+.mock-ex-label{flex-shrink:0;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:4px;margin-top:2px;white-space:nowrap}
+.mock-ex-label.good{background:rgba(63,185,80,.12);color:#3fb950}
+.mock-ex-label.bad{background:rgba(229,83,75,.12);color:#e5534b}
+.mock-ex-label.info{background:rgba(49,130,246,.1);color:#4b95ff}
+.mock-ex-text{color:#aeb9c7}
+
+@media(max-width:900px){
+  #toc-panel{display:none}
+  main{margin-right:0}
+  .reader{padding:80px 22px 90px}
+  .ch-title{font-size:27px}
+  .mock-metrics{grid-template-columns:1fr 1fr}
+  .mock-stat-grid{grid-template-columns:1fr 1fr}
+}
+</style></head>
+<body>
+<div id="progress"></div>
+<button class="menubtn" onclick="toggleMenu()"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+<div class="backdrop" id="backdrop" onclick="toggleMenu()"></div>
+<aside id="sidebar">
+  <div class="sidenav">
+    <a class="sidenav-btn" href="/">배당주투자가이드웹</a>
+    <a class="sidenav-btn active" href="/사용안내서.html">가이드북(전자책)</a>
+  </div>
+</aside>
+<div id="toc-panel">
+  <div class="brand">
+    <div class="logo">사용 가이드</div>
+    <h2>배당투자AI<br>사용 가이드</h2>
+    <p>전체 기능 완전 정복</p>
+  </div>
+  <nav class="toc">
+    <a class="toc-item" data-ch="intro" onclick="goto('intro')"><span class="toc-num">시작하며</span><span class="toc-title">이 가이드에 대하여</span></a>
+    <a class="toc-item" data-ch="overview" onclick="goto('overview')"><span class="toc-num">1장</span><span class="toc-title">화면 구성 한눈에 보기</span></a>
+    <a class="toc-item" data-ch="scoring" onclick="goto('scoring')"><span class="toc-num">2장</span><span class="toc-title">종합 점수의 설계 원리</span></a>
+    <a class="toc-item" data-ch="ranking" onclick="goto('ranking')"><span class="toc-num">3장</span><span class="toc-title">점수 랭킹 — 종목 발굴</span></a>
+    <a class="toc-item" data-ch="detail" onclick="goto('detail')"><span class="toc-num">4장</span><span class="toc-title">종목 상세와 AI 해설</span></a>
+    <a class="toc-item" data-ch="portfolio" onclick="goto('portfolio')"><span class="toc-num">5장</span><span class="toc-title">내 포트폴리오 관리</span></a>
+    <a class="toc-item" data-ch="rebalance" onclick="goto('rebalance')"><span class="toc-num">6장</span><span class="toc-title">리밸런싱 신호 읽기</span></a>
+    <a class="toc-item" data-ch="calculator" onclick="goto('calculator')"><span class="toc-num">7장</span><span class="toc-title">수익 계산기</span></a>
+    <a class="toc-item" data-ch="settings" onclick="goto('settings')"><span class="toc-num">8장</span><span class="toc-title">점수 설정과 AI 추천</span></a>
+    <a class="toc-item" data-ch="closing" onclick="goto('closing')"><span class="toc-num">맺으며</span><span class="toc-title">도구와 함께하는 장기 투자</span></a>
+  </nav>
+</div>
+
+<main><div class="reader">
+<a class="back-btn" href="/사용안내서.html"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>가이드북으로</a>
+
+<!-- ─── 시작하며 ─── -->
+<section class="chapter" id="ch-intro">
+<div class="ch-head"><span class="ch-num">시작하며</span><h1 class="ch-title">이 가이드에 대하여</h1></div>
+<div class="ch-body">
+<p class="lead">배당투자AI는 배당주 투자를 체계적으로 접근하고 싶은 분들을 위한 도구입니다. 수십 개의 지표를 하나의 화면에서 비교하고, AI가 각 종목의 의미를 사람의 말로 풀어 주며, 보유 종목의 현황을 관리하고, 미래 수익을 시뮬레이션해 볼 수 있습니다.</p>
+<p>이 가이드는 각 기능을 설명할 때 실제 화면 목업을 함께 보여줍니다. 글만 읽는 것보다 화면을 직접 보는 것이 이해에 훨씬 도움이 됩니다. 좌우 방향키로 장을 넘길 수 있습니다.</p>
+<div class="callout">
+  <div class="callout-title">먼저 읽어 주세요</div>
+  <p>이 도구가 보여주는 점수와 AI 해설은 <strong>투자 판단을 돕기 위한 참고 자료</strong>입니다. 미래의 수익이나 손실을 보장하지 않으며, 이 도구의 정보를 바탕으로 한 모든 투자 결정의 책임은 투자자 본인에게 있습니다.</p>
+</div>
+</div>
+</section>
+
+<!-- ─── 1장: 화면 구성 ─── -->
+<section class="chapter" id="ch-overview">
+<div class="ch-head"><span class="ch-num">1장</span><h1 class="ch-title">화면 구성 한눈에 보기</h1></div>
+<div class="ch-body">
+<p class="lead">이 도구는 크게 세 가지 영역으로 나뉩니다. 좌측 메뉴 사이드바, 상단 탭 메뉴, 그리고 탭에 따라 바뀌는 본문 영역입니다.</p>
+
+<h3>메인 화면 구성</h3>
+<p>아래 목업에서 ☰ 버튼을 눌러 사이드바를 직접 열어보세요.</p>
+
+<!-- ── 목업 1: 메인 화면 ── -->
+<div class="mockup">
+  <div class="mock-chrome">
+    <div class="mock-dot" style="background:#ff5f57"></div>
+    <div class="mock-dot" style="background:#ffbd2e"></div>
+    <div class="mock-dot" style="background:#28c840"></div>
+    <span class="mock-title">배당주 종합 점수 대시보드</span>
+    <span style="font-size:10px;color:#7c8896"><span class="market-on"></span>장중</span>
+  </div>
+  <div class="mock-body" style="padding:0;overflow:hidden">
+    <div class="mock-sidebar-demo" id="sidebarDemo">
+      <div class="mock-sidebar-panel" id="demoPanel">
+        <div style="height:30px"></div>
+        <a class="mock-sidebar-link on">배당주투자가이드웹</a>
+        <a class="mock-sidebar-link">가이드북(전자책)</a>
+      </div>
+      <div class="mock-main-area">
+        <div class="mock-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="mock-menu-btn" onclick="toggleDemoSidebar()" title="사이드바 열기/닫기">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+              </button>
+              <div>
+                <div class="mock-h1">배당주 <span>종합 점수</span> 대시보드</div>
+                <div class="mock-sub">카테고리 상대평가 · 거시 승수 · 조정 가능 파라미터 · 초보자 가이드</div>
+              </div>
+            </div>
+          </div>
+          <button class="mock-refresh">↻ 새로고침</button>
+        </div>
+        <div class="mock-tabs">
+          <button class="mock-tab on">점수 랭킹</button>
+          <button class="mock-tab">내 포트폴리오</button>
+          <button class="mock-tab">수익 계산기</button>
+          <button class="mock-tab">점수 설정</button>
+        </div>
+        <div style="font-size:11px;color:#7c8896;padding:8px 2px">☰ 버튼을 눌러 사이드바를 열어보세요</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>메뉴 사이드바</h3>
+<ul class="feature-list">
+  <li><strong>배당주투자가이드웹</strong> — 종합 점수 대시보드 메인 화면으로 이동합니다.</li>
+  <li><strong>가이드북(전자책)</strong> — 지금 읽고 계신 가이드북 보관함으로 이동합니다.</li>
+</ul>
+<h3>네 가지 탭</h3>
+<ul class="feature-list">
+  <li><strong>점수 랭킹</strong> — 배당주 종목들을 종합점수 순으로 비교합니다.</li>
+  <li><strong>내 포트폴리오</strong> — 보유 종목과 매수 내역을 기록하고 현황을 파악합니다.</li>
+  <li><strong>수익 계산기</strong> — 장기 투자 시 자산 성장을 시뮬레이션합니다.</li>
+  <li><strong>점수 설정</strong> — 점수 계산 기준을 직접 조정하거나 AI에게 맡깁니다.</li>
+</ul>
+<div class="callout">
+  <div class="callout-title">데이터는 자동으로 갱신되지 않습니다</div>
+  <p>화면을 열었을 때의 데이터는 마지막 새로고침 시점의 것입니다. 최신 주가를 반영한 점수를 보려면 <strong>새로고침 버튼을 먼저 누르세요.</strong></p>
+</div>
+</div>
+</section>
+
+<!-- ─── 2장: 점수 원리 ─── -->
+<section class="chapter" id="ch-scoring">
+<div class="ch-head"><span class="ch-num">2장</span><h1 class="ch-title">종합 점수의 설계 원리</h1></div>
+<div class="ch-body">
+<p class="lead">종합점수는 이 도구의 핵심입니다. 어떻게 계산되는지 이해하면 점수를 훨씬 깊이 활용할 수 있습니다.</p>
+<h3>같은 업종끼리만 비교합니다</h3>
+<p>모든 점수는 <strong>같은 카테고리(업종) 안에서 상대적으로 얼마나 매력적인가</strong>를 기준으로 계산됩니다. 은행 종목은 은행끼리, 보험사는 보험사끼리 비교합니다. 업종마다 재무 구조가 근본적으로 다르기 때문입니다.</p>
+<h3>여섯 가지 평가 항목</h3>
+<p>아래는 실제 종목(다우기술, 점수 80.7)의 세부 점수 구성입니다. 각 막대가 오른쪽으로 채워집니다.</p>
+
+<!-- ── 목업 2: 점수 구성 ── -->
+<div class="mockup">
+  <div class="mock-chrome">
+    <div class="mock-dot" style="background:#ff5f57"></div>
+    <div class="mock-dot" style="background:#ffbd2e"></div>
+    <div class="mock-dot" style="background:#28c840"></div>
+    <span class="mock-title">세부 점수 구성 — 다우기술</span>
+    <span class="mock-badge" style="background:rgba(63,185,80,.15);color:#3fb950">A등급 · 80.7점</span>
+  </div>
+  <div class="mock-body">
+    <div class="mock-score-section stagger" id="scoreStagger">
+      <div class="mock-score-row">
+        <span class="mock-score-label core">밸류</span>
+        <div class="mock-score-track"><div class="mock-score-fill" data-w="88" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div>
+        <span class="mock-score-val">88</span>
+      </div>
+      <div class="mock-score-row">
+        <span class="mock-score-label core">수익성</span>
+        <div class="mock-score-track"><div class="mock-score-fill" data-w="75" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div>
+        <span class="mock-score-val">75</span>
+      </div>
+      <div class="mock-score-row">
+        <span class="mock-score-label core">배당매력</span>
+        <div class="mock-score-track"><div class="mock-score-fill" data-w="60" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div>
+        <span class="mock-score-val">60</span>
+      </div>
+      <div class="mock-score-row">
+        <span class="mock-score-label core">배당지속성</span>
+        <div class="mock-score-track"><div class="mock-score-fill" data-w="100" style="background:linear-gradient(90deg,#3fb950,#5cd97a)"></div></div>
+        <span class="mock-score-val">100</span>
+      </div>
+      <div class="mock-score-row">
+        <span class="mock-score-label" style="color:#556070">성장</span>
+        <div class="mock-score-track"><div class="mock-score-fill" data-w="100" style="background:linear-gradient(90deg,#556070,#7c8896)"></div></div>
+        <span class="mock-score-val" style="color:#7c8896">100</span>
+      </div>
+      <div class="mock-score-row">
+        <span class="mock-score-label" style="color:#556070">유동성</span>
+        <div class="mock-score-track"><div class="mock-score-fill" data-w="98" style="background:linear-gradient(90deg,#556070,#7c8896)"></div></div>
+        <span class="mock-score-val" style="color:#7c8896">98</span>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid #1d232e;font-size:11.5px;color:#7c8896">
+      핵심 항목(밸류·수익성·배당매력·배당지속성)이 점수의 85~90%를 결정합니다.
+    </div>
+  </div>
+</div>
+
+<h3>거시 승수와 등급</h3>
+<p>동일한 점수라도 현재 경제 상황에서 업종별 유리함에 따라 소폭 보정됩니다. 이를 <strong>거시 승수</strong>라 부릅니다. 65점 이상이면서 경고가 없으면 A, 45점 미만이거나 경고가 있으면 C 등급입니다.</p>
+<div class="warn-box">
+  <div class="wt">경고 플래그 종류</div>
+  <p><strong>적자/왜곡</strong> — 회사가 적자 상태로 일부 지표가 정상 해석되지 않습니다.<br>
+  <strong>배당성향 100% 초과</strong> — 번 돈보다 많은 배당을 지급해 지속 가능성이 낮습니다.<br>
+  <strong>배당 삭감</strong> — 최근 배당이 4년 평균 대비 크게 줄었습니다.</p>
+</div>
+</div>
+</section>
+
+<!-- ─── 3장: 점수 랭킹 ─── -->
+<section class="chapter" id="ch-ranking">
+<div class="ch-head"><span class="ch-num">3장</span><h1 class="ch-title">점수 랭킹 — 종목 발굴의 출발점</h1></div>
+<div class="ch-body">
+<p class="lead">'점수 랭킹' 탭은 배당주 종목들을 종합점수 순으로 정렬해 보여줍니다. 행을 클릭하면 상세 분석 창이 열립니다.</p>
+<h3>실제 랭킹 화면</h3>
+
+<!-- ── 목업 3: 랭킹 테이블 ── -->
+<div class="mockup">
+  <div class="mock-chrome">
+    <div class="mock-dot" style="background:#ff5f57"></div>
+    <div class="mock-dot" style="background:#ffbd2e"></div>
+    <div class="mock-dot" style="background:#28c840"></div>
+    <span class="mock-title">점수 랭킹</span>
+  </div>
+  <div class="mock-body" style="padding:14px 16px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <div class="mock-cats" id="catFilter" style="margin:0;flex:1">
+        <button class="mock-cat-btn on" onclick="filterCat(this,'전체')">전체</button>
+        <button class="mock-cat-btn" onclick="filterCat(this,'증권')">증권</button>
+        <button class="mock-cat-btn" onclick="filterCat(this,'은행')">은행</button>
+        <button class="mock-cat-btn" onclick="filterCat(this,'보험')">보험</button>
+        <button class="mock-cat-btn" onclick="filterCat(this,'복합기업')">복합기업</button>
+      </div>
+      <button style="background:#3182f6;border:none;color:#fff;padding:5px 11px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">+ 종목 추가</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="mock-table">
+        <thead>
+          <tr>
+            <th style="width:18px">#</th>
+            <th>종목</th>
+            <th class="num core">PER</th>
+            <th class="num core">ROE</th>
+            <th class="num core">배당률</th>
+            <th class="num">등급</th>
+            <th class="num core">종합점수</th>
+          </tr>
+        </thead>
+        <tbody id="rankingRows">
+          <tr class="mrow stagger" data-cat="증권">
+            <td style="color:#7c8896">1</td>
+            <td><div style="font-weight:700;color:#dfe6ee;font-size:11px;letter-spacing:-.02em">다우기술</div><span style="font-size:9px;color:#7c8896;background:#1c2330;padding:1px 5px;border-radius:3px;font-weight:600">IT서비스</span></td>
+            <td class="num" style="color:#4b95ff;font-weight:700">3.45</td>
+            <td class="num" style="color:#3fb950;font-weight:700">15.95%</td>
+            <td class="num" style="color:#3fb950;font-weight:700">4.1%</td>
+            <td class="num"><span class="mock-grade gA">A</span></td>
+            <td class="num"><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><div style="width:40px;height:4px;background:#262d39;border-radius:3px;overflow:hidden"><div class="mock-bar-fill" data-w="81" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div><span style="color:#dfe6ee;font-weight:800;font-size:11px">80.7</span></div></td>
+          </tr>
+          <tr class="mrow stagger" data-cat="복합기업">
+            <td style="color:#7c8896">2</td>
+            <td><div style="font-weight:700;color:#dfe6ee;font-size:11px;letter-spacing:-.02em">기아</div><span style="font-size:9px;color:#7c8896;background:#1c2330;padding:1px 5px;border-radius:3px;font-weight:600">자동차</span></td>
+            <td class="num" style="color:#4b95ff;font-weight:700">6.37</td>
+            <td class="num" style="color:#3fb950;font-weight:700">12.92%</td>
+            <td class="num" style="color:#3fb950;font-weight:700">4.1%</td>
+            <td class="num"><span class="mock-grade gA">A</span></td>
+            <td class="num"><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><div style="width:40px;height:4px;background:#262d39;border-radius:3px;overflow:hidden"><div class="mock-bar-fill" data-w="80" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div><span style="color:#dfe6ee;font-weight:800;font-size:11px">80.1</span></div></td>
+          </tr>
+          <tr class="mrow stagger" data-cat="은행">
+            <td style="color:#7c8896">3</td>
+            <td><div style="font-weight:700;color:#dfe6ee;font-size:11px;letter-spacing:-.02em">기업은행</div><span style="font-size:9px;color:#7c8896;background:#1c2330;padding:1px 5px;border-radius:3px;font-weight:600">은행</span></td>
+            <td class="num" style="color:#4b95ff;font-weight:700">6.16</td>
+            <td class="num" style="color:#aeb9c7;font-weight:600">7.7%</td>
+            <td class="num" style="color:#3fb950;font-weight:700">5.1%</td>
+            <td class="num"><span class="mock-grade gA">A</span></td>
+            <td class="num"><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><div style="width:40px;height:4px;background:#262d39;border-radius:3px;overflow:hidden"><div class="mock-bar-fill" data-w="78" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div><span style="color:#dfe6ee;font-weight:800;font-size:11px">78.4</span></div></td>
+          </tr>
+          <tr class="mrow stagger" data-cat="증권">
+            <td style="color:#7c8896">4</td>
+            <td><div style="font-weight:700;color:#dfe6ee;font-size:11px;letter-spacing:-.02em">한국금융지주우</div><span style="font-size:9px;color:#7c8896;background:#1c2330;padding:1px 5px;border-radius:3px;font-weight:600">증권</span></td>
+            <td class="num" style="color:#4b95ff;font-weight:700">4.93</td>
+            <td class="num" style="color:#3fb950;font-weight:700">18.66%</td>
+            <td class="num" style="color:#3fb950;font-weight:700">5.2%</td>
+            <td class="num"><span class="mock-grade gA">A</span></td>
+            <td class="num"><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><div style="width:40px;height:4px;background:#262d39;border-radius:3px;overflow:hidden"><div class="mock-bar-fill" data-w="78" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div><span style="color:#dfe6ee;font-weight:800;font-size:11px">77.6</span></div></td>
+          </tr>
+          <tr class="mrow stagger" data-cat="복합기업">
+            <td style="color:#7c8896">5</td>
+            <td><div style="font-weight:700;color:#dfe6ee;font-size:11px;letter-spacing:-.02em">GS</div><span style="font-size:9px;color:#7c8896;background:#1c2330;padding:1px 5px;border-radius:3px;font-weight:600">복합기업</span></td>
+            <td class="num" style="color:#4b95ff;font-weight:700">6.68</td>
+            <td class="num" style="color:#aeb9c7;font-weight:600">5.55%</td>
+            <td class="num" style="color:#3fb950;font-weight:700">4.0%</td>
+            <td class="num"><span class="mock-grade gA">A</span></td>
+            <td class="num"><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><div style="width:40px;height:4px;background:#262d39;border-radius:3px;overflow:hidden"><div class="mock-bar-fill" data-w="77" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div><span style="color:#dfe6ee;font-weight:800;font-size:11px">76.6</span></div></td>
+          </tr>
+          <tr class="mrow stagger" data-cat="은행">
+            <td style="color:#7c8896">6</td>
+            <td><div style="font-weight:700;color:#dfe6ee;font-size:11px;letter-spacing:-.02em">iM금융지주</div><span style="font-size:9px;color:#7c8896;background:#1c2330;padding:1px 5px;border-radius:3px;font-weight:600">은행</span></td>
+            <td class="num" style="color:#4b95ff;font-weight:700">5.77</td>
+            <td class="num" style="color:#aeb9c7;font-weight:600">7.27%</td>
+            <td class="num" style="color:#aeb9c7;font-weight:600">3.8%</td>
+            <td class="num"><span class="mock-grade gC">C</span></td>
+            <td class="num"><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><div style="width:40px;height:4px;background:#262d39;border-radius:3px;overflow:hidden"><div class="mock-bar-fill" data-w="76" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div><span style="color:#dfe6ee;font-weight:800;font-size:11px">76.3</span></div></td>
+          </tr>
+          <tr class="mrow stagger" data-cat="복합기업">
+            <td style="color:#7c8896">7</td>
+            <td>
+              <div style="font-weight:700;color:#dfe6ee;font-size:11px;letter-spacing:-.02em">동국홀딩스</div>
+              <span style="font-size:9px;color:#7c8896;background:#1c2330;padding:1px 5px;border-radius:3px;font-weight:600">복합기업</span>
+              <div style="font-size:8.5px;color:#e5534b;font-weight:700;margin-top:2px">⚠ 배당 삭감</div>
+            </td>
+            <td class="num" style="color:#aeb9c7;font-weight:600">11.2</td>
+            <td class="num" style="color:#aeb9c7;font-weight:600">4.8%</td>
+            <td class="num" style="color:#aeb9c7;font-weight:600">3.2%</td>
+            <td class="num"><span class="mock-grade gC">C</span></td>
+            <td class="num"><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><div style="width:40px;height:4px;background:#262d39;border-radius:3px;overflow:hidden"><div class="mock-bar-fill" data-w="44" style="background:linear-gradient(90deg,#e5534b,#ff7068)"></div></div><span style="color:#dfe6ee;font-weight:800;font-size:11px">43.8</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:#7c8896;border-top:1px solid #1d232e;padding-top:8px">행을 클릭하면 상세 분석 창이 열립니다 · 지표 옆 <span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#1c2330;border:1px solid #262d39;font-size:9px;font-weight:700">?</span> 로 개념 설명 확인</div>
+  </div>
+</div>
+
+<h3>주요 기능</h3>
+<ul class="feature-list">
+  <li><strong>업종 필터</strong> — 표 위 업종 버튼을 클릭해 관심 업종만 골라 볼 수 있습니다. 전체·증권·은행·보험·복합기업을 자유롭게 전환합니다.</li>
+  <li><strong>경고 표시</strong> — 위 랭킹 7위 동국홀딩스처럼 종목명 아래 붉은 <strong style="color:#e5534b">⚠ 배당 삭감</strong> 플래그가 보이면 해당 종목에 주의 신호가 있다는 뜻이며 C 등급이 자동 부여됩니다. 경고 유형은 <strong>적자/왜곡</strong>·<strong>배당성향 100% 초과</strong>·<strong>배당 삭감</strong> 세 가지이며, 투자 전 반드시 사유를 확인하세요.</li>
+  <li><strong>행 클릭 → 상세 분석</strong> — 종목 행을 클릭하면 4장에서 소개하는 상세 화면이 열려 핵심 지표, 세부 점수, AI 해설을 한눈에 확인할 수 있습니다.</li>
+</ul>
+</div>
+</section>
+
+<!-- ─── 4장: 종목 상세 ─── -->
+<section class="chapter" id="ch-detail">
+<div class="ch-head"><span class="ch-num">4장</span><h1 class="ch-title">종목 상세 화면과 AI 해설</h1></div>
+<div class="ch-body">
+<p class="lead">종목 행을 클릭하면 열리는 상세 창에서 핵심 지표, 배당 이력, 세부 점수, AI 해설, 최신 뉴스를 한곳에서 볼 수 있습니다.</p>
+<h3>실제 상세 화면</h3>
+<p>AI 해설이 실시간으로 생성되는 모습까지 확인해보세요.</p>
+
+<!-- ── 목업 4: 종목 상세 ── -->
+<div class="mockup">
+  <div class="mock-chrome">
+    <div class="mock-dot" style="background:#ff5f57"></div>
+    <div class="mock-dot" style="background:#ffbd2e"></div>
+    <div class="mock-dot" style="background:#28c840"></div>
+    <span class="mock-title">종목 상세 — 다우기술</span>
+    <span class="mock-badge" style="background:rgba(63,185,80,.15);color:#3fb950">A · 80.7점</span>
+  </div>
+  <div class="mock-body" style="padding:14px 16px">
+    <!-- 종목 헤더 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:#dfe6ee;letter-spacing:-.03em">다우기술</div>
+        <div style="font-size:10px;color:#7c8896;margin-top:2px">IT서비스 · 현재가 43,600원 · 시총 9,646억</div>
+      </div>
+      <span class="mock-badge" style="background:rgba(63,185,80,.15);color:#3fb950;font-size:11px;padding:4px 10px">A등급 · 80.7점</span>
+    </div>
+    <!-- 지표 그리드 (실제 .metrics 재현) -->
+    <div class="mock-metrics stagger" id="metricsStagger">
+      <div class="mock-metric"><div class="ml">PER</div><div class="mv" style="color:#4b95ff">3.45<span style="font-size:10px;color:#7c8896;font-weight:400">배</span></div></div>
+      <div class="mock-metric"><div class="ml">PBR</div><div class="mv" style="color:#4b95ff">0.49<span style="font-size:10px;color:#7c8896;font-weight:400">배</span></div></div>
+      <div class="mock-metric"><div class="ml">ROE</div><div class="mv" style="color:#3fb950">15.95<span style="font-size:10px;color:#7c8896;font-weight:400">%</span></div></div>
+      <div class="mock-metric"><div class="ml">배당수익률</div><div class="mv" style="color:#3fb950">4.13<span style="font-size:10px;color:#7c8896;font-weight:400">%</span></div></div>
+      <div class="mock-metric"><div class="ml">배당성향</div><div class="mv">15.37<span style="font-size:10px;color:#7c8896;font-weight:400">%</span></div></div>
+      <div class="mock-metric"><div class="ml">4년평균배당률</div><div class="mv">2.58<span style="font-size:10px;color:#7c8896;font-weight:400">%</span></div></div>
+    </div>
+    <!-- 세부 점수 (실제 .brow 재현) -->
+    <div style="font-size:11px;font-weight:700;color:#aeb9c7;margin:14px 0 8px">세부 점수 구성</div>
+    <div id="detailBars">
+      <div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:11px"><span style="width:72px;color:#dfe6ee;font-weight:700;font-size:10px">밸류</span><div style="flex:1;height:5px;background:#1c2330;border-radius:4px;overflow:hidden"><div class="mock-score-fill" data-w="88" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div><span style="width:24px;text-align:right;color:#dfe6ee;font-weight:700;font-variant-numeric:tabular-nums">88</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:11px"><span style="width:72px;color:#dfe6ee;font-weight:700;font-size:10px">수익성</span><div style="flex:1;height:5px;background:#1c2330;border-radius:4px;overflow:hidden"><div class="mock-score-fill" data-w="75" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div><span style="width:24px;text-align:right;color:#dfe6ee;font-weight:700;font-variant-numeric:tabular-nums">75</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:11px"><span style="width:72px;color:#dfe6ee;font-weight:700;font-size:10px">배당매력</span><div style="flex:1;height:5px;background:#1c2330;border-radius:4px;overflow:hidden"><div class="mock-score-fill" data-w="60" style="background:linear-gradient(90deg,#3182f6,#4b95ff)"></div></div><span style="width:24px;text-align:right;color:#dfe6ee;font-weight:700;font-variant-numeric:tabular-nums">60</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:11px"><span style="width:72px;color:#dfe6ee;font-weight:700;font-size:10px">배당지속성</span><div style="flex:1;height:5px;background:#1c2330;border-radius:4px;overflow:hidden"><div class="mock-score-fill" data-w="100" style="background:linear-gradient(90deg,#3fb950,#5cd97a)"></div></div><span style="width:24px;text-align:right;color:#3fb950;font-weight:700;font-variant-numeric:tabular-nums">100</span></div>
+    </div>
+    <!-- AI 해설 (실제 .ex-row 재현) -->
+    <div class="mock-ai-box" style="margin-top:14px">
+      <div class="mock-ai-header">
+        <div class="mock-ai-dot"></div>
+        <span class="mock-ai-label">AI 해설</span>
+        <button style="margin-left:auto;background:#3182f6;border:none;color:#fff;padding:3px 10px;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;font-family:inherit">생성</button>
+      </div>
+      <div id="aiTypewriter" style="min-height:56px">
+        <div class="mock-ex-row"><span class="mock-ex-label good">GOOD</span><span class="mock-ex-text">PER 3.45배로 IT서비스 업종 내 최저 수준입니다. 주가 대비 이익 규모가 매우 큰 상태입니다.</span></div>
+        <div class="mock-ex-row"><span class="mock-ex-label good">GOOD</span><span class="mock-ex-text">ROE 15.95%는 자기 자본 효율이 높다는 의미입니다. 4년 연속 배당 지속 중입니다.</span></div>
+        <div class="mock-ex-row"><span class="mock-ex-label bad">BAD</span><span class="mock-ex-text">배당성향 15%로 낮아 배당 성장 여력은 제한적입니다.</span></div>
+        <div class="mock-ex-row"><span class="mock-ex-label info">INFO</span><span class="mock-ex-text">시가총액 9,646억 소형주 수준. 거래량 확인 후 투자하세요.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>각 섹션 설명</h3>
+<ul class="feature-list">
+  <li><strong>핵심 지표 카드</strong> — PER, PBR, ROE, 배당수익률을 업종 평균과 비교합니다.</li>
+  <li><strong>세부 점수 막대</strong> — 어느 항목에서 점수를 받았고 어디서 깎였는지 한눈에 확인합니다.</li>
+  <li><strong>AI 해설</strong> — GOOD(강점) / BAD(약점) / INFO(참고) 세 부분으로 구성됩니다. 해설은 실시간 스트리밍으로 출력됩니다.</li>
+  <li><strong>최신 뉴스</strong> — 뉴스 새로고침 버튼으로 해당 종목의 최근 기사를 가져옵니다.</li>
+  <li><strong>수동 편집</strong> — 지표 옆 편집 아이콘으로 직접 수치를 입력해 재계산해 볼 수 있습니다.</li>
+</ul>
+</div>
+</section>
+
+<!-- ─── 5장: 포트폴리오 ─── -->
+<section class="chapter" id="ch-portfolio">
+<div class="ch-head"><span class="ch-num">5장</span><h1 class="ch-title">내 포트폴리오 관리</h1></div>
+<div class="ch-body">
+<p class="lead">'내 포트폴리오' 탭은 실제 보유 종목을 기록하고 투자 현황 전체를 파악하는 공간입니다.</p>
+<h3>포트폴리오 요약 카드</h3>
+<p>수치가 아래에서 올라오며 집계되는 것을 확인해 보세요.</p>
+
+<!-- ── 목업 5: 포트폴리오 ── -->
+<div class="mockup">
+  <div class="mock-chrome">
+    <div class="mock-dot" style="background:#ff5f57"></div>
+    <div class="mock-dot" style="background:#ffbd2e"></div>
+    <div class="mock-dot" style="background:#28c840"></div>
+    <span class="mock-title">내 포트폴리오</span>
+    <button class="mock-refresh" style="font-size:10px;padding:4px 10px">+ 종목 추가</button>
+  </div>
+  <div class="mock-body" style="padding:14px 16px">
+    <!-- 요약 카드 -->
+    <div class="mock-stat-grid stagger" id="statsStagger" style="margin-bottom:16px">
+      <div class="mock-stat">
+        <div class="sl">평가금액</div>
+        <div class="sv" id="statVal1" data-target="12840000">0</div>
+        <div class="sd" style="color:#7c8896;font-size:9px">원</div>
+      </div>
+      <div class="mock-stat">
+        <div class="sl">평가손익</div>
+        <div class="sv" id="statVal2" data-target="1340000" style="color:#3fb950">+0</div>
+        <div class="sd" style="color:#3fb950;font-size:9px">+11.6%</div>
+      </div>
+      <div class="mock-stat">
+        <div class="sl">연간 배당</div>
+        <div class="sv" id="statVal3" data-target="528000">0</div>
+        <div class="sd" style="color:#7c8896;font-size:9px">원/년</div>
+      </div>
+    </div>
+    <!-- ptable (실제 포트폴리오 테이블 재현) -->
+    <div style="overflow-x:auto">
+      <table class="mock-table" style="font-size:10px">
+        <thead>
+          <tr>
+            <th>종목</th>
+            <th class="num">수량</th>
+            <th class="num">평단</th>
+            <th class="num">현재가</th>
+            <th class="num">평가금액</th>
+            <th class="num core">평가손익</th>
+            <th class="num">비중</th>
+            <th class="num core">점수</th>
+            <th>신호</th>
+          </tr>
+        </thead>
+        <tbody class="stagger" id="pfRows">
+          <tr class="mrow">
+            <td><div style="font-weight:700;color:#dfe6ee;letter-spacing:-.02em">다우기술</div><span style="font-size:8px;color:#7c8896;background:#1c2330;padding:1px 4px;border-radius:2px;font-weight:600">IT서비스</span></td>
+            <td class="num" style="color:#aeb9c7">100</td>
+            <td class="num" style="color:#aeb9c7">40,000</td>
+            <td class="num" style="color:#aeb9c7">43,600</td>
+            <td class="num" style="color:#aeb9c7">4,360,000</td>
+            <td class="num pos">+360,000<div style="font-size:8px">+9.0%</div></td>
+            <td class="num" style="color:#aeb9c7">34%</td>
+            <td class="num"><span class="mock-grade gA" style="font-size:9px">A·80.7</span></td>
+            <td><span style="font-size:9px;font-weight:700;background:rgba(63,185,80,.14);color:#3fb950;border:1px solid rgba(63,185,80,.28);padding:2px 6px;border-radius:10px;white-space:nowrap">매수↑</span></td>
+          </tr>
+          <tr class="mrow">
+            <td><div style="font-weight:700;color:#dfe6ee;letter-spacing:-.02em">기업은행</div><span style="font-size:8px;color:#7c8896;background:#1c2330;padding:1px 4px;border-radius:2px;font-weight:600">은행</span></td>
+            <td class="num" style="color:#aeb9c7">200</td>
+            <td class="num" style="color:#aeb9c7">19,000</td>
+            <td class="num" style="color:#aeb9c7">20,350</td>
+            <td class="num" style="color:#aeb9c7">4,070,000</td>
+            <td class="num pos">+270,000<div style="font-size:8px">+7.1%</div></td>
+            <td class="num" style="color:#aeb9c7">32%</td>
+            <td class="num"><span class="mock-grade gA" style="font-size:9px">A·78.4</span></td>
+            <td><span style="font-size:9px;font-weight:700;background:#1c2330;color:#7c8896;border:1px solid #262d39;padding:2px 6px;border-radius:10px;white-space:nowrap">유지</span></td>
+          </tr>
+          <tr class="mrow">
+            <td><div style="font-weight:700;color:#dfe6ee;letter-spacing:-.02em">KT</div><span style="font-size:8px;color:#7c8896;background:#1c2330;padding:1px 4px;border-radius:2px;font-weight:600">통신</span></td>
+            <td class="num" style="color:#aeb9c7">50</td>
+            <td class="num" style="color:#aeb9c7">58,000</td>
+            <td class="num" style="color:#aeb9c7">55,600</td>
+            <td class="num" style="color:#aeb9c7">2,780,000</td>
+            <td class="num neg">−120,000<div style="font-size:8px">−4.1%</div></td>
+            <td class="num" style="color:#aeb9c7">22%</td>
+            <td class="num"><span class="mock-grade gA" style="font-size:9px">A·75.8</span></td>
+            <td><span style="font-size:9px;font-weight:700;background:#1c2330;color:#7c8896;border:1px solid #262d39;padding:2px 6px;border-radius:10px;white-space:nowrap">유지</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:#7c8896;border-top:1px solid #1d232e;padding-top:8px">포트폴리오 평균점수: <strong style="color:#4b95ff">78.3</strong> · 평균 배당수익률: <strong style="color:#3fb950">4.5%</strong> · 포트폴리오에 등록된 종목은 수익 계산기에 자동 반영됩니다</div>
+  </div>
+</div>
+
+<h3>주요 기능</h3>
+<ul class="feature-list">
+  <li><strong>자동 평균 매입가</strong> — 같은 종목을 여러 번 매수 기록하면 평균 매입가를 자동 계산합니다.</li>
+  <li><strong>요약 카드</strong> — 평가금액, 원금, 손익, 연간 배당 예상액, 평균 점수를 한눈에 파악합니다.</li>
+  <li><strong>분산 현황</strong> — 원형 그래프와 업종별 막대로 집중도를 확인합니다. 한 업종 쏠림 시 경고가 표시됩니다.</li>
+  <li><strong>수익 계산기 연동</strong> — 포트폴리오에 등록된 종목이 수익 계산기의 '내 종목 적용' 모드에 자동 반영됩니다.</li>
+</ul>
+</div>
+</section>
+
+<!-- ─── 6장: 리밸런싱 ─── -->
+<section class="chapter" id="ch-rebalance">
+<div class="ch-head"><span class="ch-num">6장</span><h1 class="ch-title">리밸런싱 신호 읽기</h1></div>
+<div class="ch-body">
+<p class="lead">포트폴리오 화면의 각 종목에는 세 가지 신호 중 하나가 표시될 수 있습니다. 비중을 조정해 볼 만하다는 참고 제안입니다.</p>
+<h3>세 가지 신호</h3>
+
+<!-- ── 목업 6: 리밸런싱 ── -->
+<div class="mockup">
+  <div class="mock-chrome">
+    <div class="mock-dot" style="background:#ff5f57"></div>
+    <div class="mock-dot" style="background:#ffbd2e"></div>
+    <div class="mock-dot" style="background:#28c840"></div>
+    <span class="mock-title">리밸런싱 신호 — 내 포트폴리오</span>
+  </div>
+  <div class="mock-body">
+    <div class="stagger" id="rebalRows">
+      <div class="mock-portfolio-row">
+        <div style="flex:1">
+          <div style="font-size:12.5px;font-weight:700;color:#dfe6ee">다우기술</div>
+          <div style="font-size:10px;color:#7c8896;margin-top:2px">보유비중 8% · 점수 80.7</div>
+        </div>
+        <span class="mock-signal sig-buy">추가 매수 후보</span>
+      </div>
+      <div class="mock-portfolio-row">
+        <div style="flex:1">
+          <div style="font-size:12.5px;font-weight:700;color:#dfe6ee">SK텔레콤</div>
+          <div style="font-size:10px;color:#7c8896;margin-top:2px">보유비중 35% · 점수 5.0</div>
+        </div>
+        <span class="mock-signal sig-sell">비중 축소 검토</span>
+      </div>
+      <div class="mock-portfolio-row">
+        <div style="flex:1">
+          <div style="font-size:12.5px;font-weight:700;color:#dfe6ee">기업은행</div>
+          <div style="font-size:10px;color:#7c8896;margin-top:2px">은행 업종 합계 52%</div>
+        </div>
+        <span class="mock-signal sig-sector">카테고리 쏠림</span>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:10.5px;color:#7c8896;border-top:1px solid #1d232e;padding-top:10px">신호는 점수와 비중 두 가지 수치만으로 계산됩니다.</div>
+  </div>
+</div>
+
+<ul class="feature-list">
+  <li><span style="display:inline-block;background:rgba(63,185,80,.14);color:#3fb950;border:1px solid rgba(63,185,80,.28);padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;margin-right:6px">추가 매수 후보</span>점수는 높은데 보유 비중이 낮습니다. 더 담아볼 만하다는 제안입니다.</li>
+  <li><span style="display:inline-block;background:rgba(229,83,75,.11);color:#e5534b;border:1px solid rgba(229,83,75,.28);padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;margin-right:6px">비중 축소 검토</span>점수가 낮아졌는데 보유 비중이 높습니다. 일부를 줄여 볼 만합니다.</li>
+  <li><span style="display:inline-block;background:rgba(216,168,56,.11);color:#d8a838;border:1px solid rgba(216,168,56,.28);padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;margin-right:6px">카테고리 쏠림</span>특정 업종에 자산이 과도하게 집중되어 있습니다.</li>
+</ul>
+<div class="callout">
+  <div class="callout-title">신호는 명령이 아닙니다</div>
+  <p>신호는 '한 번 살펴볼 이유'입니다. 잦은 매매는 수수료와 세금 부담을 늘립니다. 회사의 최근 공시나 업종 이슈도 함께 확인하세요.</p>
+</div>
+</div>
+</section>
+
+<!-- ─── 7장: 수익 계산기 ─── -->
+<section class="chapter" id="ch-calculator">
+<div class="ch-head"><span class="ch-num">7장</span><h1 class="ch-title">수익 계산기 — 복리의 힘 체감하기</h1></div>
+<div class="ch-body">
+<p class="lead">지금의 투자를 장기간 이어 갔을 때 자산이 어떻게 성장하는지 보여줍니다. 배당금 재투자 복리 효과를 포함합니다.</p>
+<h3>실제 계산기 화면</h3>
+
+<!-- ── 목업 7: 계산기 ── -->
+<div class="mockup">
+  <div class="mock-chrome">
+    <div class="mock-dot" style="background:#ff5f57"></div>
+    <div class="mock-dot" style="background:#ffbd2e"></div>
+    <div class="mock-dot" style="background:#28c840"></div>
+    <span class="mock-title">수익 계산기 — 중립 시나리오</span>
+  </div>
+  <div class="mock-body">
+    <!-- 시나리오 버튼 -->
+    <div class="mock-scenario">
+      <button class="mock-sc-btn">보수적</button>
+      <button class="mock-sc-btn on">중립</button>
+      <button class="mock-sc-btn">공격적</button>
+    </div>
+    <!-- 입력 요약 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
+      <div style="background:#1c2330;border:1px solid #262d39;border-radius:8px;padding:9px 12px">
+        <div style="font-size:9px;color:#7c8896;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">초기 원금</div>
+        <div style="font-size:14px;font-weight:800;color:#dfe6ee">1,000만원</div>
+      </div>
+      <div style="background:#1c2330;border:1px solid #262d39;border-radius:8px;padding:9px 12px">
+        <div style="font-size:9px;color:#7c8896;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">월 적립</div>
+        <div style="font-size:14px;font-weight:800;color:#dfe6ee">200만원</div>
+      </div>
+      <div style="background:#1c2330;border:1px solid #262d39;border-radius:8px;padding:9px 12px">
+        <div style="font-size:9px;color:#7c8896;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">배당수익률</div>
+        <div style="font-size:14px;font-weight:800;color:#3fb950">4.5%</div>
+      </div>
+    </div>
+    <!-- 결과 히어로 카드 -->
+    <div style="background:linear-gradient(135deg,rgba(49,130,246,.09),rgba(49,130,246,.03));border:1px solid rgba(49,130,246,.25);border-radius:12px;padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;gap:16px">
+      <div>
+        <div style="font-size:10px;color:#7c8896;font-weight:600;margin-bottom:4px">10년 후 예상 자산</div>
+        <div style="font-size:22px;font-weight:800;color:#3fb950;font-variant-numeric:tabular-nums" id="calcFinal">0원</div>
+        <div style="font-size:10px;color:#7c8896;margin-top:3px">월 배당 수령: <span style="color:#4b95ff;font-weight:700" id="calcMonthly">0원</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="text-align:right">
+        <div style="font-size:9px;color:#7c8896;margin-bottom:3px">투자 기간</div>
+        <div style="font-size:16px;font-weight:800;color:#dfe6ee">10년</div>
+        <div style="font-size:9px;color:#3fb950;margin-top:2px;font-weight:600">+312%</div>
+      </div>
+    </div>
+    <!-- SVG 라인 차트 (프론트엔드 growthChart 디자인 재현) -->
+    <div style="font-size:10px;font-weight:700;color:#aeb9c7;margin-bottom:6px">연도별 자산 성장</div>
+    <svg id="calcSvg" viewBox="0 0 600 200" style="width:100%;height:auto;display:block;overflow:visible" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="cGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3182f6" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#3182f6" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <!-- 격자선 -->
+      <line x1="50" y1="30" x2="580" y2="30" stroke="#262d39" stroke-width="1"/>
+      <line x1="50" y1="78" x2="580" y2="78" stroke="#262d39" stroke-width="1"/>
+      <line x1="50" y1="126" x2="580" y2="126" stroke="#262d39" stroke-width="1"/>
+      <line x1="50" y1="175" x2="580" y2="175" stroke="#262d39" stroke-width="1"/>
+      <!-- Y축 레이블 -->
+      <text x="44" y="33" fill="#7c8896" font-size="9" text-anchor="end" font-family="Pretendard,system-ui,sans-serif">3억</text>
+      <text x="44" y="81" fill="#7c8896" font-size="9" text-anchor="end" font-family="Pretendard,system-ui,sans-serif">2억</text>
+      <text x="44" y="129" fill="#7c8896" font-size="9" text-anchor="end" font-family="Pretendard,system-ui,sans-serif">1억</text>
+      <text x="44" y="178" fill="#7c8896" font-size="9" text-anchor="end" font-family="Pretendard,system-ui,sans-serif">0</text>
+      <!-- X축 레이블 -->
+      <text x="50"  y="193" fill="#7c8896" font-size="9" text-anchor="middle" font-family="Pretendard,system-ui,sans-serif">0년</text>
+      <text x="156" y="193" fill="#7c8896" font-size="9" text-anchor="middle" font-family="Pretendard,system-ui,sans-serif">2년</text>
+      <text x="262" y="193" fill="#7c8896" font-size="9" text-anchor="middle" font-family="Pretendard,system-ui,sans-serif">4년</text>
+      <text x="368" y="193" fill="#7c8896" font-size="9" text-anchor="middle" font-family="Pretendard,system-ui,sans-serif">6년</text>
+      <text x="474" y="193" fill="#7c8896" font-size="9" text-anchor="middle" font-family="Pretendard,system-ui,sans-serif">8년</text>
+      <text x="580" y="193" fill="#3fb950" font-size="9" text-anchor="middle" font-weight="700" font-family="Pretendard,system-ui,sans-serif">10년</text>
+      <!-- 면적 채우기 (평가금액 아래) -->
+      <polygon id="calcArea" points="50,175 50,170 156,145 262,118 368,89 474,56 580,21 580,175" fill="url(#cGrad)" style="opacity:0;transition:opacity 1s ease .3s"/>
+      <!-- 누적 원금 (dashed gray) -->
+      <polyline id="calcInv" points="50,170 156,147 262,124 368,100 474,77 580,54" fill="none" stroke="#8899aa" stroke-width="2" stroke-dasharray="6,4" stroke-linecap="round" style="opacity:0;transition:opacity .8s ease .6s"/>
+      <!-- 누적 배당 (yellow) -->
+      <polyline id="calcDiv" points="50,175 156,174 262,170 368,163 474,153 580,139" fill="none" stroke="#d8a838" stroke-width="2" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560;transition:stroke-dashoffset 1.3s ease .2s"/>
+      <!-- 평가금액 (blue, drawn first) -->
+      <polyline id="calcVal" points="50,170 156,145 262,118 368,89 474,56 580,21" fill="none" stroke="#3182f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="600" style="stroke-dashoffset:600;transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1) 0s"/>
+    </svg>
+    <!-- 범례 -->
+    <div style="display:flex;gap:14px;margin-top:6px;font-size:9px;color:#7c8896">
+      <span style="display:inline-flex;align-items:center;gap:5px"><svg width="14" height="4" style="flex-shrink:0"><line x1="0" y1="2" x2="14" y2="2" stroke="#8899aa" stroke-width="2" stroke-dasharray="4,3"/></svg>누적 원금</span>
+      <span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:14px;height:3px;background:#3182f6;border-radius:2px;flex-shrink:0"></span>평가금액</span>
+      <span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:14px;height:3px;background:#d8a838;border-radius:2px;flex-shrink:0"></span>누적 배당</span>
+    </div>
+  </div>
+</div>
+
+<ul class="feature-list">
+  <li><strong>내 종목 적용</strong> — 포트폴리오의 실제 평가금액과 배당수익률이 자동으로 반영됩니다.</li>
+  <li><strong>세 가지 시나리오</strong> — 보수적(배당만), 중립(장기 평균), 공격적(리밸런싱 성공)으로 선택합니다.</li>
+  <li><strong>배당소득세 옵션</strong> — 15.4% 세금을 적용해 실제 수령액을 정확히 파악할 수 있습니다.</li>
+</ul>
+<div class="callout">
+  <div class="callout-title">이것은 가정이지 예언이 아닙니다</div>
+  <p>계산 결과는 입력한 조건이 매년 동일하게 유지된다는 가정 하의 수치입니다. 이 계산기의 목적은 정확한 예측이 아니라, 복리의 힘을 체감하는 데 있습니다.</p>
+</div>
+</div>
+</section>
+
+<!-- ─── 8장: 점수 설정 ─── -->
+<section class="chapter" id="ch-settings">
+<div class="ch-head"><span class="ch-num">8장</span><h1 class="ch-title">점수 설정과 AI 자동 추천</h1></div>
+<div class="ch-body">
+<p class="lead">점수 설정 탭은 종합점수 계산 기준을 직접 조정하거나 AI에게 맡기는 공간입니다. 슬라이더를 움직이면 점수가 즉시 재계산됩니다.</p>
+<h3>실제 슬라이더 — 직접 조작해보세요</h3>
+
+<!-- ── 목업 8: 설정 슬라이더 ── -->
+<div class="mockup">
+  <div class="mock-chrome">
+    <div class="mock-dot" style="background:#ff5f57"></div>
+    <div class="mock-dot" style="background:#ffbd2e"></div>
+    <div class="mock-dot" style="background:#28c840"></div>
+    <span class="mock-title">점수 설정 — 가중치 조정</span>
+    <button class="mock-refresh" style="font-size:10px;padding:4px 10px" onclick="aiRecommend()">AI 추천</button>
+  </div>
+  <div class="mock-body" style="padding:14px 16px">
+    <!-- AI 자동 추천 섹션 -->
+    <div style="background:var(--paper2,#1c2330);border:1px solid #262d39;border-radius:12px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:#dfe6ee;margin-bottom:4px">AI 자동 추천</div>
+      <div style="font-size:10px;color:#7c8896;line-height:1.6;margin-bottom:12px">오늘의 경기·금리·환율·업종 뉴스를 AI가 분석해 점수 파라미터 조정안을 근거와 함께 제안합니다.</div>
+      <button class="mock-airec-btn" onclick="aiRecommend()">✦ 오늘 기준 AI 최적값 추천받기</button>
+    </div>
+    <!-- 가중치 슬라이더 -->
+    <div style="font-size:11px;font-weight:700;color:#aeb9c7;margin-bottom:4px">지표 가중치 <span style="font-size:9px;color:#7c8896;font-weight:500">— 합계는 자동으로 100% 환산</span></div>
+    <div style="font-size:10px;color:#7c8896;margin-bottom:12px"><span style="color:#4b95ff">파랑 = 핵심 지표</span> · 회색 = 보조 지표</div>
+    <div id="sliderSection">
+      <div class="mock-slider-row">
+        <div class="mock-slider-header"><span class="mock-slider-name">밸류 <span style="font-size:8px;background:rgba(49,130,246,.12);color:#4b95ff;padding:1px 5px;border-radius:3px;font-weight:700">핵심</span></span><span class="mock-slider-val" id="sv0">28%</span></div>
+        <input type="range" class="mock-range" id="sl0" min="0" max="50" value="28" oninput="updateSliders()">
+      </div>
+      <div class="mock-slider-row">
+        <div class="mock-slider-header"><span class="mock-slider-name">수익성 <span style="font-size:8px;background:rgba(49,130,246,.12);color:#4b95ff;padding:1px 5px;border-radius:3px;font-weight:700">핵심</span></span><span class="mock-slider-val" id="sv1">28%</span></div>
+        <input type="range" class="mock-range" id="sl1" min="0" max="50" value="28" oninput="updateSliders()">
+      </div>
+      <div class="mock-slider-row">
+        <div class="mock-slider-header"><span class="mock-slider-name">배당매력 <span style="font-size:8px;background:rgba(49,130,246,.12);color:#4b95ff;padding:1px 5px;border-radius:3px;font-weight:700">핵심</span></span><span class="mock-slider-val" id="sv2">18%</span></div>
+        <input type="range" class="mock-range" id="sl2" min="0" max="50" value="18" oninput="updateSliders()">
+      </div>
+      <div class="mock-slider-row">
+        <div class="mock-slider-header"><span class="mock-slider-name">배당지속성 <span style="font-size:8px;background:rgba(49,130,246,.12);color:#4b95ff;padding:1px 5px;border-radius:3px;font-weight:700">핵심</span></span><span class="mock-slider-val" id="sv3">16%</span></div>
+        <input type="range" class="mock-range" id="sl3" min="0" max="50" value="16" oninput="updateSliders()">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;margin:2px 0">
+        <span style="font-size:10px;color:#7c8896;width:80px">성장(보조)</span>
+        <div style="flex:1;height:5px;background:#1c2330;border-radius:3px;overflow:hidden"><div style="height:100%;width:6%;background:#556070;border-radius:3px"></div></div>
+        <span style="font-size:10px;color:#7c8896;width:28px;text-align:right">6%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;margin:2px 0">
+        <span style="font-size:10px;color:#7c8896;width:80px">유동성(보조)</span>
+        <div style="flex:1;height:5px;background:#1c2330;border-radius:3px;overflow:hidden"><div style="height:100%;width:4%;background:#556070;border-radius:3px"></div></div>
+        <span style="font-size:10px;color:#7c8896;width:28px;text-align:right">4%</span>
+      </div>
+    </div>
+    <div class="score-preview">
+      <div>
+        <div class="sp-label">현재 설정 기준 샘플 점수</div>
+        <div class="sp-val" id="scorePreview">80.7</div>
+      </div>
+      <div style="flex:1"></div>
+      <div class="sp-grade gA" id="gradePreview">A등급</div>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:#7c8896">슬라이더를 움직이면 점수가 실시간으로 재계산됩니다</div>
+  </div>
+</div>
+
+<ul class="feature-list">
+  <li><strong>가중치 슬라이더</strong> — 각 항목의 비중을 조정하면 랭킹 순위가 즉시 바뀝니다.</li>
+  <li><strong>거시 승수</strong> — 업종별 경제 환경 반영값을 직접 조정합니다.</li>
+  <li><strong>AI 자동 추천</strong> — Claude가 최신 경제 상황을 분석해 가중치 조정안과 이유를 함께 제안합니다.</li>
+  <li><strong>기본값 초기화</strong> — 언제든 처음 상태로 되돌릴 수 있습니다.</li>
+</ul>
+</div>
+</section>
+
+<!-- ─── 맺으며 ─── -->
+<section class="chapter" id="ch-closing">
+<div class="ch-head"><span class="ch-num">맺으며</span><h1 class="ch-title">도구와 함께하는 장기 투자</h1></div>
+<div class="ch-body">
+<p class="lead">이 가이드를 마치며, 이 도구를 오래 잘 활용하기 위한 몇 가지를 정리합니다.</p>
+<h3>이 도구의 솔직한 한계</h3>
+<ul class="feature-list">
+  <li><strong>데이터의 시점</strong> — 새로고침 전까지는 최신 주가가 반영되지 않습니다.</li>
+  <li><strong>수치 밖의 정보</strong> — 배당 공시 변경, 경영권 분쟁, 업종 규제는 직접 확인해야 합니다.</li>
+  <li><strong>AI도 틀릴 수 있습니다</strong> — AI 해설과 추천은 하나의 관점입니다. 다른 정보와 함께 검토하세요.</li>
+  <li><strong>과거 데이터 기반</strong> — 과거의 패턴이 미래에도 반복된다는 보장은 없습니다.</li>
+</ul>
+<div class="callout">
+  <div class="callout-title">오래 좋은 투자자로 남기 위한 세 가지</div>
+  <p><strong>분산하세요.</strong> 한 종목, 한 업종에 집중하지 마세요. 아무리 점수가 높아도 예상치 못한 일은 일어납니다.<br><br>
+  <strong>꾸준히 나누어 사세요.</strong> 한꺼번에 큰돈을 넣기보다, 매달 일정액을 꾸준히 투자하는 것이 장기적으로 훨씬 유리합니다.<br><br>
+  <strong>흔들리지 마세요.</strong> 시장이 급락할 때 좋은 배당주를 헐값에 살 수 있는 기회가 옵니다.</p>
+</div>
+<p style="font-size:16px;color:var(--txt);font-weight:600;text-align:center;margin-top:40px;padding-top:30px;border-top:1px solid var(--line)">이 도구가 그 긴 여정의 차분한 조력자가 되기를 바랍니다.<br><span style="font-size:14px;font-weight:400;color:var(--soft)">끝까지 읽어 주셔서 감사합니다.</span></p>
+</div>
+</section>
+
+<div class="chnav">
+  <button id="prevBtn" onclick="prev()"><div class="nlabel">이전</div><div class="ntitle" id="prevT"></div></button>
+  <button id="nextBtn" class="next" onclick="next()"><div class="nlabel">다음</div><div class="ntitle" id="nextT"></div></button>
+</div>
+</div></main>
+
+<script>
+const IDS=["intro","overview","scoring","ranking","detail","portfolio","rebalance","calculator","settings","closing"];
+const TITLES={"intro":"이 가이드에 대하여","overview":"화면 구성 한눈에 보기","scoring":"종합 점수의 설계 원리","ranking":"점수 랭킹 — 종목 발굴","detail":"종목 상세와 AI 해설","portfolio":"내 포트폴리오 관리","rebalance":"리밸런싱 신호 읽기","calculator":"수익 계산기","settings":"점수 설정과 AI 추천","closing":"도구와 함께하는 장기 투자"};
+let cur=0, aiTimer=null, twTimer=null;
+
+/* ── 챕터 전환 ── */
+function render(){
+  const id=IDS[cur];
+  document.querySelectorAll('.chapter').forEach(s=>s.classList.toggle('on',s.id==='ch-'+id));
+  document.querySelectorAll('.toc-item').forEach(t=>t.classList.toggle('on',t.dataset.ch===id));
+  const pB=document.getElementById('prevBtn'),nB=document.getElementById('nextBtn');
+  pB.disabled=cur===0; nB.disabled=cur===IDS.length-1;
+  document.getElementById('prevT').textContent=cur>0?TITLES[IDS[cur-1]]:'';
+  document.getElementById('nextT').textContent=cur<IDS.length-1?TITLES[IDS[cur+1]]:'';
+  document.getElementById('progress').style.width=((cur+1)/IDS.length*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  const at=document.querySelector('.toc-item.on');if(at)at.scrollIntoView({block:'nearest'});
+  // 애니메이션 초기화 후 실행
+  clearTimeout(aiTimer); clearTimeout(twTimer);
+  stopAllAnimations();
+  setTimeout(()=>runChapterAnimations(id), 80);
+}
+
+function goto(id){cur=IDS.indexOf(id);render();}
+function prev(){if(cur>0){cur--;render();}}
+function next(){if(cur<IDS.length-1){cur++;render();}}
+
+/* ── 챕터별 애니메이션 ── */
+function stopAllAnimations(){
+  document.querySelectorAll('.mock-score-fill,.mock-bar-fill').forEach(el=>{el.style.width='0';});
+  document.querySelectorAll('.stagger').forEach(el=>el.classList.remove('go'));
+  clearInterval(window._pfInterval);
+  // SVG 차트 리셋
+  const a=document.getElementById('calcArea'),v=document.getElementById('calcVal'),d=document.getElementById('calcDiv'),n=document.getElementById('calcInv');
+  if(a) a.style.opacity='0';
+  if(v) v.style.strokeDashoffset='600';
+  if(d) d.style.strokeDashoffset='560';
+  if(n) n.style.opacity='0';
+}
+
+function runChapterAnimations(id){
+  const ch=document.getElementById('ch-'+id);
+  if(!ch) return;
+  // stagger 입장
+  ch.querySelectorAll('.stagger').forEach((el,i)=>{
+    setTimeout(()=>el.classList.add('go'),i*60);
+  });
+  // 점수 막대 채우기
+  setTimeout(()=>{
+    ch.querySelectorAll('.mock-score-fill,.mock-bar-fill').forEach((el,i)=>{
+      const w=el.dataset.w||'0';
+      setTimeout(()=>{el.style.width=w+'%';},i*60);
+    });
+  },150);
+  // 챕터별 특수 효과
+  if(id==='detail') startAITypewriter();
+  if(id==='portfolio') startCountUps();
+  if(id==='calculator'){
+    // SVG 라인 차트 애니메이션
+    setTimeout(()=>{
+      const area=document.getElementById('calcArea');
+      const val=document.getElementById('calcVal');
+      const div=document.getElementById('calcDiv');
+      const inv=document.getElementById('calcInv');
+      if(area) area.style.opacity='1';
+      if(val) val.style.strokeDashoffset='0';
+      if(div) div.style.strokeDashoffset='0';
+      if(inv) inv.style.opacity='1';
+    },200);
+    setTimeout(()=>{
+      countUpEl(document.getElementById('calcFinal'),318000000,'',true);
+      countUpEl(document.getElementById('calcMonthly'),1193000,'',true);
+    },300);
+  }
+}
+
+/* ── AI 타이프라이터 ── */
+const AI_LINES=[
+  '<span class="ai-tag ai-good">GOOD</span> PER 3.45배로 증권 업종 내 최저 수준입니다. 주가 대비 이익 규모가 매우 큰 상태입니다.',
+  '<span class="ai-tag ai-good">GOOD</span> ROE 15.95%는 자기 자본 효율이 높다는 의미입니다. 4년 연속 배당 지속 중입니다.',
+  '<span class="ai-tag ai-bad">BAD</span> 배당수익률 4.1%는 양호하나, 배당성향이 15%로 낮아 배당 성장 여력은 제한적입니다.',
+  '<span class="ai-tag ai-info">INFO</span> 시가총액이 소형주 수준입니다. 거래량이 적어 매수·매도 시 호가 차이에 주의하세요.',
+];
+let twIdx=0, twCharIdx=0;
+function startAITypewriter(){
+  const el=document.getElementById('aiTypewriter');
+  if(!el) return;
+  el.innerHTML=''; twIdx=0; twCharIdx=0;
+  typeNextChar(el);
+}
+function typeNextChar(el){
+  if(twIdx>=AI_LINES.length){
+    setTimeout(()=>{el.innerHTML=''; twIdx=0; twCharIdx=0; typeNextChar(el);},2400);
+    return;
+  }
+  const line=AI_LINES[twIdx];
+  // HTML 태그 포함 문자열 처리
+  const stripped=line.replace(/<[^>]+>/g,'');
+  const tagMatch=line.match(/^(<[^>]+>[^<]*<\/[^>]+>)\s*/);
+  const prefix=tagMatch?tagMatch[0]:'';
+  const rest=tagMatch?line.slice(prefix.length):line;
+  if(twCharIdx===0) el.innerHTML=prefix;
+  if(twCharIdx<=rest.length){
+    el.innerHTML=prefix+rest.slice(0,twCharIdx)+'<span class="cursor"></span>';
+    twCharIdx++;
+    twTimer=setTimeout(()=>typeNextChar(el),28);
+  } else {
+    twCharIdx=0; twIdx++;
+    twTimer=setTimeout(()=>{
+      if(twIdx<AI_LINES.length) el.innerHTML+=`<br>`;
+      typeNextChar(el);
+    },600);
+  }
+}
+
+/* ── 카운트업 (포트폴리오 라이브 업데이트 포함) ── */
+function startCountUps(){
+  const bases=[12840000,1340000,528000];
+  const ids=['statVal1','statVal2','statVal3'];
+  const prefixes=['','+',''];
+  const spreads=[180000,45000,8000];
+  function tick(targets){
+    ids.forEach((id,i)=>{
+      const el=document.getElementById(id);
+      if(el) countUpEl(el,targets[i],prefixes[i],false);
+    });
+  }
+  tick(bases);
+  window._pfInterval=setInterval(()=>{
+    tick(bases.map((b,i)=>b+Math.floor((Math.random()-.5)*2*spreads[i])));
+  },3200);
+}
+function countUpEl(el,target,prefix,money){
+  if(!el) return;
+  let start=0, duration=1200, startTime=null;
+  function step(ts){
+    if(!startTime) startTime=ts;
+    const p=Math.min((ts-startTime)/duration,1);
+    const ease=1-Math.pow(1-p,3);
+    const val=Math.floor(ease*target);
+    if(money) el.textContent=(prefix||'')+(val>=100000000?((val/100000000).toFixed(1)+'억'):val>=10000?(Math.floor(val/10000)+'만')+'원':val.toLocaleString()+'원');
+    else el.textContent=(prefix||'')+val.toLocaleString();
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ── 사이드바 토글 (목업) ── */
+function toggleDemoSidebar(){
+  const p=document.getElementById('demoPanel');
+  p.classList.toggle('show');
+}
+
+/* ── 업종 필터 ── */
+function filterCat(btn, cat){
+  document.querySelectorAll('#catFilter .mock-cat-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#rankingRows tr.mrow').forEach(row=>{
+    row.style.display=(cat==='전체'||row.dataset.cat.includes(cat))?'':'none';
+  });
+}
+
+/* ── 슬라이더 ── */
+function updateSliders(){
+  const vals=[0,1,2,3].map(i=>parseInt(document.getElementById('sl'+i).value));
+  const total=vals.reduce((a,b)=>a+b,0)||1;
+  vals.forEach((v,i)=>{ document.getElementById('sv'+i).textContent=Math.round(v/total*100)+'%'; });
+  // 샘플 점수 계산
+  const weights=vals.map(v=>v/total);
+  const scores=[88,75,60,100];
+  const raw=weights.reduce((sum,w,i)=>sum+w*scores[i],0);
+  const preview=(raw*0.98+9).toFixed(1);
+  const el=document.getElementById('scorePreview');
+  const gel=document.getElementById('gradePreview');
+  el.textContent=preview;
+  el.style.color=preview>=65?'#dfe6ee':'#e5534b';
+  const grade=preview>=65?'A등급':preview>=45?'B등급':'C등급';
+  gel.textContent=grade;
+  gel.className='sp-grade '+(preview>=65?'gA':preview>=45?'gB':'gC');
+}
+
+/* ── AI 추천 버튼 (목업) ── */
+function aiRecommend(){
+  const targets=[32,24,22,18];
+  targets.forEach((v,i)=>{
+    const sl=document.getElementById('sl'+i);
+    if(!sl) return;
+    let cur=parseInt(sl.value);
+    const step=()=>{
+      if(cur===v){updateSliders();return;}
+      cur+=(v>cur?1:-1);
+      sl.value=cur;
+      updateSliders();
+      setTimeout(step,20);
+    };
+    step();
+  });
+}
+
+/* ── 메뉴 ── */
+function toggleMenu(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('backdrop').classList.toggle('on');
+}
+
+/* ── 키보드 ── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight')next();
+  if(e.key==='ArrowLeft')prev();
+});
+
+render();
+</script>
+</body></html>
