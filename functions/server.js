@@ -134,6 +134,9 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// async route 에러를 next(err)로 전달 → 전역 에러 핸들러가 처리
+const wrap = fn => (req, res, next) => fn(req, res, next).catch(next);
+
 // ── 유틸 ──────────────────────────────────────────────────────────
 
 function isMarketOpen() {
@@ -146,15 +149,15 @@ function isMarketOpen() {
 
 // ── 주식 API ──────────────────────────────────────────────────────
 
-app.get('/api/stocks', async (req, res) => {
+app.get('/api/stocks', wrap(async (req, res) => {
   const uid = getUid(req);
   if (uid) await seedUserIfEmpty(uid);
   const db     = await load(uid);
   const scored = applyGrades(scoreStocks(db.stocks, db.settings));
   res.json({ stocks: scored, lastRefresh: db.lastRefresh, marketOpen: isMarketOpen() });
-});
+}));
 
-app.get('/api/search-stock', async (req, res) => {
+app.get('/api/search-stock', wrap(async (req, res) => {
   const q = (req.query.q || '').trim();
   if (q.length < 1) return res.json({ results: [] });
 
@@ -186,9 +189,9 @@ app.get('/api/search-stock', async (req, res) => {
   } catch (e) {
     res.json({ results: [], error: String(e.message) });
   }
-});
+}));
 
-app.post('/api/stocks', async (req, res) => {
+app.post('/api/stocks', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
   const { name, code, category } = req.body;
@@ -206,9 +209,9 @@ app.post('/api/stocks', async (req, res) => {
   } catch (e) {
     res.status(400).json({ error: `KIS 검증 실패: ${e.message}` });
   }
-});
+}));
 
-app.post('/api/classify-stock', async (req, res) => {
+app.post('/api/classify-stock', wrap(async (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: 'name 필수' });
   const uid        = getUid(req);
@@ -220,9 +223,9 @@ app.post('/api/classify-stock', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-});
+}));
 
-app.put('/api/stocks/:code/manual', async (req, res) => {
+app.put('/api/stocks/:code/manual', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
   const db  = await load(uid);
@@ -243,9 +246,9 @@ app.put('/api/stocks/:code/manual', async (req, res) => {
   db.stocks[idx].manualFields = manualFields;
   await save({ stocks: db.stocks }, uid);
   res.json({ ok: true });
-});
+}));
 
-app.delete('/api/stocks/:code', async (req, res) => {
+app.delete('/api/stocks/:code', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
   const db  = await load(uid);
@@ -253,7 +256,7 @@ app.delete('/api/stocks/:code', async (req, res) => {
   db.stocks = db.stocks.filter(s => s.code !== key && s.name !== key);
   await save({ stocks: db.stocks }, uid);
   res.json({ ok: true });
-});
+}));
 
 function mergeKIS(s, f) {
   const newPrice    = f.price;
@@ -262,7 +265,7 @@ function mergeKIS(s, f) {
     roe: f.roe ?? s.roe, mcap: f.mcap ?? s.mcap, divYield: newDivYield };
 }
 
-app.post('/api/refresh', async (req, res) => {
+app.post('/api/refresh', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
   const db = await load(uid);
@@ -278,9 +281,9 @@ app.post('/api/refresh', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
   }
-});
+}));
 
-app.get('/api/explain/:code', async (req, res) => {
+app.get('/api/explain/:code', wrap(async (req, res) => {
   const uid    = getUid(req);
   const db     = await load(uid);
   const key    = decodeURIComponent(req.params.code);
@@ -291,9 +294,9 @@ app.get('/api/explain/:code', async (req, res) => {
   if (!cached)  return res.json({ explanation: null, at: null });
   const explanation = cached.result ?? (cached.text ? parseExplainRaw(cached.text) : null);
   res.json({ explanation, at: cached.at, score: cached.score });
-});
+}));
 
-app.post('/api/explain/:code', async (req, res) => {
+app.post('/api/explain/:code', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
   const db     = await load(uid);
@@ -309,11 +312,11 @@ app.post('/api/explain/:code', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
   }
-});
+}));
 
 app.get('/api/config/default', (req, res) => res.json(DEFAULT_CONFIG));
 
-app.post('/api/recommend-config', async (req, res) => {
+app.post('/api/recommend-config', wrap(async (req, res) => {
   const uid        = getUid(req);
   const db         = await load(uid);
   const current    = { ...DEFAULT_CONFIG, ...(db.settings || {}) };
@@ -324,37 +327,37 @@ app.post('/api/recommend-config', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
   }
-});
+}));
 
-app.get('/api/holdings', async (req, res) => {
+app.get('/api/holdings', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
   const db = await load(uid);
   res.json({ holdings: db.holdings || [] });
-});
+}));
 
-app.put('/api/holdings', async (req, res) => {
+app.put('/api/holdings', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
   const holdings = req.body.holdings || [];
   await save({ holdings }, uid);
   res.json({ ok: true });
-});
+}));
 
-app.get('/api/settings', async (req, res) => {
+app.get('/api/settings', wrap(async (req, res) => {
   const uid = getUid(req);
   const db  = await load(uid);
   res.json(db.settings);
-});
+}));
 
-app.put('/api/settings', async (req, res) => {
+app.put('/api/settings', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
   const db       = await load(uid);
   const settings = { ...db.settings, ...req.body };
   await save({ settings }, uid);
   res.json({ ok: true, settings });
-});
+}));
 
 // ── 뉴스 ──────────────────────────────────────────────────────────
 
@@ -402,7 +405,7 @@ async function fetchNaverItems(stockName, clientId, clientSecret) {
   });
 }
 
-app.get('/api/news/:code', async (req, res) => {
+app.get('/api/news/:code', wrap(async (req, res) => {
   const uid   = getUid(req);
   const db    = await load(uid);
   const key   = decodeURIComponent(req.params.code);
@@ -464,7 +467,7 @@ app.get('/api/news/:code', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: String(e.message) });
   }
-});
+}));
 
 // ── 네이버 OAuth + JWT ────────────────────────────────────────────
 
@@ -479,7 +482,7 @@ app.get('/auth/naver', (req, res) => {
   res.redirect(`https://nid.naver.com/oauth2.0/authorize?${params}`);
 });
 
-app.get('/auth/naver/callback', async (req, res) => {
+app.get('/auth/naver/callback', wrap(async (req, res) => {
   const { code, state } = req.query;
   if (!checkState(state)) return res.redirect('/?autherror=invalid_state');
   try {
@@ -508,13 +511,19 @@ app.get('/auth/naver/callback', async (req, res) => {
     console.error('Naver auth error:', e.message);
     res.redirect('/?autherror=1');
   }
-});
+}));
 
 app.get('/api/me', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth?.startsWith('Bearer ')) return res.json({ user: null });
   const user = jwtVerify(auth.slice(7));
   res.json({ user: user ? { uid: user.uid, name: user.name, email: user.email } : null });
+});
+
+// 전역 에러 핸들러 — async 라우트에서 next(err)로 전달된 에러 처리
+app.use((err, req, res, next) => {
+  console.error('[server] route error:', err.message || err);
+  if (!res.headersSent) res.status(500).json({ error: String(err.message || err) });
 });
 
 module.exports = app;

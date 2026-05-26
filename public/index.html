@@ -1188,7 +1188,7 @@ async function genExplain(name,btn){
     if(j.error){box.innerHTML=`<span style="color:var(--bad)">${j.error}</span>`;}
     else{renderExplainBox(j.explanation,j.at);}
   }catch(e){
-    box.innerHTML='<span style="color:var(--bad)">⚠ 백엔드 미연결. server.js 실행 후 사용하세요.</span>';
+    box.innerHTML='<span style="color:var(--bad)">⚠ AI 분석 중 오류가 발생했습니다. 다시 시도해 주세요.</span>';
   }
   btn.disabled=false;btn.textContent='↻ 재생성 (토큰 소모)';
 }
@@ -1726,7 +1726,7 @@ async function tryConnectBackend(){
     setInterval(refreshDataSilent, 30 * 1000);
     console.log('[배당주] 백엔드 연결 완료 — 30초 자동폴링 시작');
   }catch(e){
-    console.log('[배당주] 백엔드 미연결 — 인라인 시드 데이터로 동작합니다');
+    console.error('[배당주] tryConnectBackend 에러:', e);
   }
 }
 
@@ -1749,7 +1749,7 @@ async function renderStockMgmt(){
   const catSel=document.getElementById('newStockCat');
   if(!listEl)return;
   if(!_backendReady){
-    listEl.innerHTML='<div style="color:var(--dim);font-size:12px;padding:12px 0">백엔드 연결 시 사용 가능합니다. server.js를 먼저 실행하세요.</div>';
+    listEl.innerHTML='<div style="color:var(--dim);font-size:12px;padding:12px 0">로그인 후 사용 가능합니다.</div>';
     if(catSel)catSel.innerHTML='';
     return;
   }
