@@ -133,7 +133,7 @@
   .qual-tag .lc{width:16px;height:16px;vertical-align:-3px}
   .modal-rsec-head h4 .lc{width:14px;height:14px;color:var(--dim);margin-right:4px}
   /* 모달 우측 탭 (AI 지표 분석 카드 바로 위) */
-  .modal-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .modal-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line)}
   .modal-tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.13s;letter-spacing:-.02em;display:inline-flex;align-items:center;gap:6px;margin-bottom:-1px;font-family:inherit}
   .modal-tab:hover{color:var(--soft)}
   .modal-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
@@ -1163,9 +1163,9 @@ function openM(d){
           <div class="modal-rsec">
             <div class="modal-rsec-head">
               <h4><i data-lucide="bar-chart-3" class="lc"></i>AI 지표 분석</h4>
-              <button class="genbtn" id="explainBtn" onclick="genExplain('${esc(d.name)}',this)">✦ Gemini 분석 생성</button>
+              <button class="genbtn" id="explainBtn" onclick="genExplain('${esc(d.name)}',this)">✦ AI 지표 해설</button>
             </div>
-            <div class="explain" id="explainBox"><span style="color:var(--dim);font-size:13px">버튼을 누르면 Gemini가 최신 뉴스를 검색해 이 종목을 해설합니다.</span></div>
+            <div class="explain" id="explainBox"><span style="color:var(--dim);font-size:13px">버튼을 누르면 이 종목의 평가 점수와 지표(PER·PBR·ROE·배당 등)를 배당 투자 관점에서 해설해 드립니다.</span></div>
           </div>
           <div class="modal-rsec">
             <div class="modal-rsec-head">
@@ -1187,6 +1187,7 @@ function openM(d){
       </div>
     </div>`;
   document.getElementById('ov').classList.add('on');
+  document.body.style.overflow='hidden';
   if(window.lucide&&lucide.createIcons)lucide.createIcons();
   loadCachedExplain(d.name);
   loadCachedQual(d.name);
@@ -1195,7 +1196,7 @@ function switchModalTab(name){
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active',t.dataset.mtab===name));
   document.querySelectorAll('.modal-tab-content').forEach(c=>c.classList.toggle('hidden',c.dataset.mtab!==name));
 }
-function closeM(){document.getElementById('ov').classList.remove('on');}
+function closeM(){document.getElementById('ov').classList.remove('on');document.body.style.overflow='';}
 async function fetchNews(name,btn){
   btn.disabled=true;btn.textContent='불러오는 중…';
   const box=document.getElementById('newsBox');
@@ -1232,8 +1233,9 @@ function renderExplainBox(ex, at){
   const dateStr=at?new Date(at).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
   const staleBadge=ageDays>=7?`<span class="ex-stale">⚠ ${Math.floor(ageDays)}일 전 해설 · 재생성 권장</span><br>`:'';
   const dateLine=dateStr?`<div style="font-size:10px;color:var(--dim);margin-bottom:8px">${staleBadge}생성일 ${dateStr}</div>`:'';
+  const disclaimer=`<div style="margin-top:12px;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;font-size:11px;color:var(--dim);line-height:1.7">이 해설은 공개된 재무 지표를 배당 투자 관점에서만 분석한 것입니다. 기업의 최근 뉴스, 사업 전망, 시장 상황 등은 반영되지 않았으니 다른 정보와 함께 참고하시기 바랍니다. 투자 판단과 책임은 본인에게 있습니다.</div>`;
   if(typeof ex==='string'){
-    box.innerHTML=dateLine+strip(ex);
+    box.innerHTML=dateLine+strip(ex)+disclaimer;
   }else{
     box.innerHTML=[dateLine,
       ex.summary      ?`<div class="ex-row"><span class="ex-label">한줄평</span><span>${strip(ex.summary)}</span></div>`:'',
@@ -1243,6 +1245,7 @@ function renderExplainBox(ex, at){
       (!ex.score_reason&&ex.strengths)?`<div class="ex-row"><span class="ex-label good">강점</span><span>${strip(ex.strengths)}</span></div>`:'',
       ex.risks        ?`<div class="ex-row"><span class="ex-label bad">주의사항</span><span>${strip(ex.risks)}</span></div>`:'',
       ex.checkpoints  ?`<div class="ex-row"><span class="ex-label info">투자 전 확인</span><span style="line-height:2">${strip(ex.checkpoints)}</span></div>`:'',
+      disclaimer,
     ].join('');
   }
   if(btn)btn.textContent='↻ 재생성 (토큰 소모)';
