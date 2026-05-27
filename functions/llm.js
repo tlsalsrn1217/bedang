@@ -30,12 +30,45 @@ async function callGemini(prompt, { model = MODEL, json = false, grounding = fal
   return data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';
 }
 
-/* ── (1) 종목 해설 프롬프트 — 지표·점수 근거 전용 ── */
-function buildExplainPrompt(stock) {
-  const b = stock.breakdown;
+/* ── (1) 종목 해설 프롬프트 — 지표·점수 근거 전용 (baseline 통합) ── */
+function buildExplainPrompt(stock, marketBaseline) {
+  const b   = stock.breakdown;
   const pct = (v) => v != null ? (v * 100).toFixed(2) + '%' : '-';
+  const fmt = (v, k) => {
+    if (v == null || !Number.isFinite(Number(v))) return '-';
+    const n = Number(v);
+    return k === 'pct' ? n.toFixed(2) + '%' : n.toFixed(2);
+  };
+  const diff = (val, med, lowerBetter) => {
+    if (val == null || med == null || !Number.isFinite(med) || med <= 0) return '-';
+    const p = (val - med) / med * 100;
+    if (Math.abs(p) < 3) return '평균과 비슷';
+    const isLow = p < 0;
+    const good  = lowerBetter ? isLow : !isLow;
+    const arrow = isLow ? '↓' : '↑';
+    const tag   = lowerBetter ? (good ? '저평가' : '고평가') : (good ? '우수' : '부진');
+    return `${arrow}${Math.abs(p).toFixed(0)}% (${tag})`;
+  };
+
+  const ind   = stock.baseline; // 업종 평균(없으면 시장)
+  const mkt   = marketBaseline; // 시장 평균 (KOSPI 시드 표본)
+  const indNm = ind?.name || '동종 업종';
+
+  // 종목값 (PER/PBR/ROE/배당률)을 baseline과 비교
+  const stockDivPc = stock.divYield != null ? stock.divYield * 100 : null;
+  const baseBlock = (ind || mkt) ? `
+[기준선 — 시드 표본 중앙값 (KIS 집계, 매일 1회 갱신)]
+${ind ? `· ${indNm} 평균: PER ${fmt(ind.per)} / PBR ${fmt(ind.pbr)} / ROE ${fmt(ind.roe,'pct')} / 배당률 ${fmt(ind.divYieldPc,'pct')}  (표본 ${ind.sampleSize ?? '?'}종)` : '· 업종 평균 데이터 없음'}
+${mkt ? `· KOSPI 시장 평균:  PER ${fmt(mkt.per)} / PBR ${fmt(mkt.pbr)} / ROE ${fmt(mkt.roe,'pct')} / 배당률 ${fmt(mkt.divYieldPc,'pct')}  (표본 ${mkt.sampleSize ?? '?'}종)` : '· 시장 평균 데이터 없음'}
+
+[이 종목 vs ${indNm} 평균]
+· PER:   ${diff(stock.per, ind?.per, true)}
+· PBR:   ${diff(stock.pbr, ind?.pbr, true)}
+· ROE:   ${diff(stock.roe, ind?.roe, false)}
+· 배당률: ${diff(stockDivPc, ind?.divYieldPc, false)}` : '';
+
   return `당신은 배당주 점수 모델 해설가입니다.
-아래 종목의 정량 지표와 각 세부 점수가 왜 그 값인지 초보 투자자에게 쉬운 한국어로 설명하세요.
+아래 종목의 정량 지표가 같은 업종/시장 평균과 어떻게 다른지 초보 투자자에게 쉬운 한국어로 설명하세요.
 외부 뉴스·예측·시황은 언급하지 마세요. 제공된 수치만 근거로 삼으세요.
 
 [종목] ${stock.name} (${stock.category})
@@ -44,14 +77,20 @@ function buildExplainPrompt(stock) {
 [시장지표] PER ${stock.per} · PBR ${stock.pbr} · ROE ${stock.roe}% · 배당성향 ${stock.payout}%
 [배당지표] 배당률 ${pct(stock.divYield)} · 4년평균배당률 ${pct(stock.avgYield)} · 전년DPS ${stock.prevDps ?? '-'}원 · 4년평균DPS ${stock.avgDps ? Math.round(stock.avgDps) : '-'}원
 [경고] ${stock.flags && stock.flags.length ? stock.flags.join(', ') : '없음'}
+${baseBlock}
+
+[해설 규칙]
+- "PER 5.77은 낮다" 같은 일반론 대신 "${indNm} 평균 대비 X% 저평가" 식으로 ★기준선 대비★ 해설할 것.
+- 표본이 시드 종목(주로 배당주)이라 시장 전체와 편향이 있을 수 있음을 한 번 언급(과장 X).
+- 단정 표현 금지 — "~한 편으로 보입니다", "~로 해석됩니다" 식 추측형.
 
 반드시 아래 JSON 형식만 출력하세요. 마크다운 기호(#, *, -, \`, > 등) 절대 사용 금지. 순수 JSON만.
-{"summary":"종합점수 근거 한줄평 (1~2문장)","score_reason":"세부 점수 중 높거나 낮은 항목의 근거 설명 (2~3문장)","risks":"경고·주의 지표 해설 및 투자 시 주의사항 (없으면 '특이 경고 없음')","checkpoints":"이 종목 투자 전 직접 확인해야 할 체크리스트 2~3가지"}`;
+{"summary":"종합점수 근거 한줄평 (1~2문장, 업종 평균 대비 위치 명시)","score_reason":"세부 점수가 높거나 낮은 이유를 기준선 비교로 설명 (2~3문장)","risks":"경고·주의 지표 해설 및 투자 시 주의사항 (없으면 '특이 경고 없음')","checkpoints":"이 종목 투자 전 직접 확인해야 할 체크리스트 2~3가지"}`;
 }
 
-/* ── (1-a) 해설 생성 — JSON 모드, 그라운딩 없음 ── */
-async function explainStock(stock, apiKey) {
-  const raw = await callGemini(buildExplainPrompt(stock), { json: true, apiKey });
+/* ── (1-a) 해설 생성 — JSON 모드, 그라운딩 없음. marketBaseline은 KOSPI 시드 표본 평균 ── */
+async function explainStock(stock, apiKey, marketBaseline) {
+  const raw = await callGemini(buildExplainPrompt(stock, marketBaseline), { json: true, apiKey });
   return parseExplainRaw(raw);
 }
 

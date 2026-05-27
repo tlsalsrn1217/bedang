@@ -300,7 +300,7 @@ app.delete('/api/stocks/:code', wrap(async (req, res) => {
 }));
 
 function mergeKIS(s, f) {
-  const newPrice    = f.price;
+  const newPrice    = f.price ?? s.price; // KIS 가격이 null(미체결 등)이면 기존 가격 유지
   const newDivYield = (s.prevDps && newPrice && newPrice > 0) ? s.prevDps / newPrice : s.divYield;
   return { ...s, price: newPrice, per: f.per ?? s.per, pbr: f.pbr ?? s.pbr,
     roe: f.roe ?? s.roe, mcap: f.mcap ?? s.mcap, divYield: newDivYield,
@@ -315,11 +315,17 @@ app.post('/api/refresh', wrap(async (req, res) => {
   const withCodes = db.stocks.filter(s => s.code);
   try {
     const fresh  = await fetchMany(withCodes.map(s => s.code));
+    const failed = fresh.filter(f => f.error);
+    if (failed.length) {
+      const codeToName = Object.fromEntries(withCodes.map(s => [s.code, s.name]));
+      console.warn('[refresh] KIS 실패 종목:', failed.map(f => `${codeToName[f.code]||f.code}(${f.error})`).join(', '));
+    }
     const byCode = Object.fromEntries(fresh.filter(f => !f.error).map(f => [f.code, f]));
     db.stocks    = db.stocks.map(s => (!s.code || !byCode[s.code]) ? s : mergeKIS(s, byCode[s.code]));
     db.lastRefresh = new Date().toISOString();
     await save({ stocks: db.stocks, lastRefresh: db.lastRefresh }, uid);
-    res.json({ ok: true, updated: Object.keys(byCode).length, lastRefresh: db.lastRefresh });
+    const failedNames = failed.map(f => Object.fromEntries(withCodes.map(s=>[s.code,s.name]))[f.code] || f.code);
+    res.json({ ok: true, updated: Object.keys(byCode).length, failed: failedNames, lastRefresh: db.lastRefresh });
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
   }
@@ -347,7 +353,7 @@ app.post('/api/explain/:code', wrap(async (req, res) => {
   const stock  = scored.find(s => s.code === key || s.name === key);
   if (!stock) return res.status(404).json({ error: '종목 없음' });
   try {
-    const result = await explainStock(stock);
+    const result = await explainStock(stock, undefined, baseline?.market?.kospi || null);
     const at     = new Date().toISOString();
     await save({ explanations: { [stock.name]: { result, at, score: stock.score } } }, uid);
     res.json({ explanation: result, at });
@@ -364,7 +370,7 @@ const CHART_CACHE_TTL = 1000 * 60 * 60 * 6; // 6시간
 app.get('/api/chart/:code', wrap(async (req, res) => {
   const code   = decodeURIComponent(req.params.code);
   const preset = (req.query.preset || '1D').toUpperCase();
-  const VALID  = new Set(['3M','1Y','3Y','5Y','10Y','ALL']);
+  const VALID  = new Set(['1M','3M','1Y','3Y','5Y','ALL']);
   if (!VALID.has(preset)) return res.status(400).json({ error: '유효하지 않은 preset' });
   if (!code) return res.status(400).json({ error: '종목코드 필요' });
 
