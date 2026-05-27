@@ -91,4 +91,22 @@ async function saveQualitative(uid, stockName, data) {
   await db.doc(`${qualColl(uid)}/${stockName}`).set(clean(data));
 }
 
-module.exports = { load, save, loadQualitative, saveQualitative };
+/**
+ * 정성 분석 일괄 조회 — 랭킹 표 아이콘용.
+ * 반환: { [stockName]: { premiumTag, at } } — 표 행 아이콘에 필요한 최소 필드만.
+ */
+async function loadAllQualitative(uid) {
+  const db   = getFirestore();
+  const snap = await db.collection(qualColl(uid)).get();
+  const out  = {};
+  snap.docs.forEach(d => {
+    const data = d.data();
+    const tag  = data?.result?.premiumTag;
+    if (tag && tag !== 'none') {
+      out[d.id] = { premiumTag: tag, at: data.at || null };
+    }
+  });
+  return out;
+}
+
+module.exports = { load, save, loadQualitative, saveQualitative, loadAllQualitative };

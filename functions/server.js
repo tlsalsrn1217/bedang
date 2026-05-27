@@ -11,7 +11,7 @@ const { scoreStocks, DEFAULT_CONFIG } = require('./scoring');
 const { fetchMetrics, fetchMany, clearCache } = require('./crawler');
 const { explainStock, parseExplainRaw, recommendConfig, classifyAndCheck } = require('./llm');
 const { analyzeQualitative } = require('./qualitative');
-const { load, save, loadQualitative, saveQualitative } = require('./db');
+const { load, save, loadQualitative, saveQualitative, loadAllQualitative } = require('./db');
 
 // ── JWT 유틸 (외부 패키지 없이 순수 crypto) ──────────────────────
 
@@ -307,6 +307,14 @@ app.post('/api/explain/:code', wrap(async (req, res) => {
 }));
 
 // ── 정성 분석 레이어 (점수와 분리, 모달에서만 사용) ─────────────
+// 일괄 조회 — 랭킹 표 아이콘용. premiumTag != 'none'인 항목만.
+app.get('/api/qualitative', wrap(async (req, res) => {
+  const uid = getUid(req);
+  if (!uid) return res.json({ tags: {} });
+  const tags = await loadAllQualitative(uid);
+  res.json({ tags });
+}));
+
 app.get('/api/qualitative/:code', wrap(async (req, res) => {
   const uid    = getUid(req);
   const db     = await load(uid);

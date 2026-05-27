@@ -124,6 +124,12 @@
   .qual-meta{font-size:10px;color:var(--dim);margin-bottom:6px}
   /* Lucide 아이콘 */
   .lc{width:14px;height:14px;stroke-width:2;vertical-align:-2px;flex-shrink:0}
+  /* 랭킹 표 행에 표시되는 정성 태그 아이콘 (점수 정렬·표에 영향 X, 캐시 데이터만 표시) */
+  .row-qtag{display:inline-block;width:14px;height:14px;margin-left:6px;vertical-align:-2px;cursor:help;stroke-width:2}
+  .row-qtag.growth{color:var(--accent-soft)}
+  .row-qtag.overvalued{color:var(--bad)}
+  .row-qtag.dip{color:var(--warn)}
+  .row-qtag.hidden{color:var(--soft)}
   .qual-tag .lc{width:16px;height:16px;vertical-align:-3px}
   .modal-rsec-head h4 .lc{width:14px;height:14px;color:var(--dim);margin-right:4px}
   /* 모달 우측 탭 (AI 지표 분석 카드 바로 위) */
@@ -1068,6 +1074,16 @@ async function loadBmPopup() {
     popup.innerHTML = `<div class="bench-loading">로드 실패 — 백엔드를 확인하세요</div>`;
   }
 }
+// 캐시된 정성 태그 (랭킹 표 아이콘용) — { stockName: { premiumTag, at } }
+let QUAL_TAGS={};
+function _qualIconHtml(name){
+  const t=QUAL_TAGS&&QUAL_TAGS[name];
+  if(!t||!t.premiumTag||t.premiumTag==='none')return '';
+  const meta=(typeof _qualTagMeta==='function')?_qualTagMeta(t.premiumTag):null;
+  if(!meta)return '';
+  const tip=`${meta.label} — ${meta.hint} (정성 태그, 점수 무관)`;
+  return `<i data-lucide="${meta.icon}" class="lc row-qtag ${meta.cls}" title="${tip.replace(/"/g,'&quot;')}"></i>`;
+}
 function renderRows(){
   let filtered=DATA;
   if(curSector!=='전체')filtered=filtered.filter(d=>(d.sector||d.category)===curSector);
@@ -1076,7 +1092,7 @@ function renderRows(){
   document.getElementById('tbody').innerHTML=rows.map((d,i)=>`
     <tr class="row" onclick='openM(${JSON.stringify(d).replace(/'/g,"&#39;")})'>
       <td class="rank">${i+1}</td>
-      <td><div class="name">${d.name}${!d.code?'<span class="no-data-badge code-missing" title="종목코드 없음 — KIS 연동 불가">코드없음</span>':d.price==null?'<span class="no-data-badge data-err" title="KIS 데이터 수신 실패 — 다음 갱신 시 재시도">데이터없음</span>':''}${d.isHolding?'<span class="manual-badge" title="지주사">지주</span>':''}</div><span class="cat">${d.sector?`${d.sector} · ${d.industry}`:d.category}</span>${d.flags&&d.flags.length?`<div class="flag">⚑ ${d.flags.length}개 경고</div>`:''}</td>
+      <td><div class="name">${d.name}${_qualIconHtml(d.name)}${!d.code?'<span class="no-data-badge code-missing" title="종목코드 없음 — KIS 연동 불가">코드없음</span>':d.price==null?'<span class="no-data-badge data-err" title="KIS 데이터 수신 실패 — 다음 갱신 시 재시도">데이터없음</span>':''}${d.isHolding?'<span class="manual-badge" title="지주사">지주</span>':''}</div><span class="cat">${d.sector?`${d.sector} · ${d.industry}`:d.category}</span>${d.flags&&d.flags.length?`<div class="flag">⚑ ${d.flags.length}개 경고</div>`:''}</td>
       <td class="num mut">${d.per??'-'}</td><td class="num mut">${d.pbr??'-'}</td>
       <td class="num mut">${d.roe!=null?d.roe+'%':'-'}</td><td class="num mut">${fmtPct(d.divYield)}</td>
       <td class="num mut hide-sm">${fmtPct(d.avgYield)}</td>
@@ -1088,6 +1104,17 @@ function renderRows(){
       <td class="num"><div class="scorebar"><div class="bar"><i style="width:${d.score}%;background:${scoreColor(d.score)}"></i></div><span class="scoreval" style="color:${scoreColor(d.score)}">${d.score}</span></div></td>
       <td class="del-cell" onclick='event.stopPropagation();delRow(${JSON.stringify(d.name).replace(/'/g,"&#39;")})'><button class="del-row-btn" title="종목 삭제">✕</button></td>
     </tr>`).join('');
+  if(window.lucide&&lucide.createIcons)lucide.createIcons();
+}
+async function loadQualTags(){
+  if(location.protocol==='file:')return;
+  try{
+    const r=await apiFetch('/api/qualitative');
+    if(!r.ok)return;
+    const j=await r.json();
+    QUAL_TAGS=j.tags||{};
+    renderRows();
+  }catch(e){}
 }
 function openM(d){
   const b=d.breakdown||{};
@@ -1280,7 +1307,13 @@ async function genQual(name,btn){
     const r=await apiFetch('/api/qualitative/'+encodeURIComponent(name),{method:'POST'});
     const j=await r.json();
     if(j.error){box.innerHTML=`<span style="color:var(--bad)">${j.error}</span>`;}
-    else if(j.qualitative){renderQualBox(j.qualitative,j.at);}
+    else if(j.qualitative){
+      renderQualBox(j.qualitative,j.at);
+      const tag=j.qualitative.premiumTag;
+      if(tag&&tag!=='none'){QUAL_TAGS[name]={premiumTag:tag,at:j.at};}
+      else{delete QUAL_TAGS[name];}
+      renderRows();
+    }
     else{box.innerHTML='<span style="color:var(--dim);font-size:13px">분석 결과를 받지 못했습니다.</span>';}
   }catch(e){
     box.innerHTML='<span style="color:var(--bad)">⚠ 정성 분석 중 오류. 다시 시도해 주세요.</span>';
@@ -1862,6 +1895,7 @@ async function tryConnectBackend(attempt){
         renderPortfolio();renderHoldings();
       }
       console.log('[배당주] 백엔드 연결 완료');
+      loadQualTags();
     }catch(e){
       console.error('[배당주] 데이터 로딩 오류:', e);
     }
