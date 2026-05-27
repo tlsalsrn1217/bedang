@@ -119,15 +119,16 @@ function _relFromMedian(value, median, higherBetter) {
 }
 
 // 종목 매칭되는 기준선: industry → sector → KOSPI → KOSDAQ
+// 반환 객체에 kind: 'industry'|'market' 표시 (UI가 업종 줄 노출 여부 판단)
 function _pickBaseline(baseline, stock) {
   if (!baseline) return null;
   const ind = stock.industry || stock.category;
   const sec = stock.sector   || stock.category;
-  return (baseline.industries?.[ind])
-      || (baseline.industries?.[sec])
-      || baseline.market?.kospi
-      || baseline.market?.kosdaq
-      || null;
+  const indHit = baseline.industries?.[ind] || baseline.industries?.[sec];
+  if (indHit) return { ...indHit, kind: 'industry' };
+  const mkt = baseline.market?.kospi || baseline.market?.kosdaq;
+  if (mkt) return { ...mkt, kind: 'market' };
+  return null;
 }
 
 function scoreStocks(stocks, userConfig = {}, baseline = null) {
@@ -247,6 +248,7 @@ function scoreStocks(stocks, userConfig = {}, baseline = null) {
         // 기준선 메타(있으면) — UI 병기용
         baseline: base ? {
           name:       base.name || null,
+          kind:       base.kind || null,   // 'industry' | 'market' (UI에서 업종 줄 노출 여부)
           per:        base.per ?? null,
           pbr:        base.pbr ?? null,
           roe:        base.roe ?? null,

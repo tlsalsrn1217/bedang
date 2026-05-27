@@ -80,20 +80,21 @@
   .modal-rsec-head h4{font-size:13px;font-weight:700;letter-spacing:-.02em;color:var(--txt);margin:0}
   .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
   .metric{background:var(--paper2);border-radius:10px;padding:10px 12px;border:1px solid var(--line2)}.metric .l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600}.metric .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px;letter-spacing:-.01em}
-  /* 기준선 병기 — 2줄 정렬 구조, 업종이 1차·시장이 보조 */
-  .metric .b{margin-top:8px;display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums;border-top:1px solid var(--line2);padding-top:7px}
-  .metric .b-row{display:grid;grid-template-columns:minmax(0,auto) 1fr minmax(0,auto);column-gap:8px;align-items:baseline;line-height:1.4}
+  /* 기준선 병기 — 라벨/값 1행, 차이 2행으로 분리 (카드 좁을 때 겹침 방지) */
+  .metric .b{margin-top:8px;display:flex;flex-direction:column;gap:5px;font-variant-numeric:tabular-nums;border-top:1px solid var(--line2);padding-top:7px}
+  .metric .b-row{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;row-gap:1px;align-items:baseline;line-height:1.45;min-width:0}
   .metric .b-row.b-primary{color:var(--soft);font-size:11px;font-weight:600}
   .metric .b-row.b-secondary{color:var(--dim);font-size:10.5px;font-weight:500}
-  .metric .b-label{white-space:nowrap}
-  .metric .b-sub{color:var(--dim);font-weight:500;margin-left:2px;font-size:.92em}
-  .metric .b-val{text-align:right;color:var(--txt);font-weight:600}
+  .metric .b-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .metric .b-sub{color:var(--dim);font-weight:500;margin-left:3px;font-size:.92em}
+  .metric .b-val{text-align:right;color:var(--txt);font-weight:600;white-space:nowrap}
   .metric .b-row.b-secondary .b-val{color:var(--soft);font-weight:500}
-  .metric .b-diff{display:inline-flex;align-items:baseline;gap:3px;font-size:10.5px;font-weight:700;justify-self:end;white-space:nowrap}
+  /* 차이는 라벨 줄 아래에 별도 행으로 — 카드 좁아도 겹치지 않음 */
+  .metric .b-diff{grid-column:1/-1;display:inline-flex;align-items:baseline;gap:4px;font-size:10.5px;font-weight:700;white-space:nowrap;justify-self:end}
   .metric .b-diff.vs-good{color:var(--good)}
   .metric .b-diff.vs-bad{color:var(--bad)}
   .metric .b-diff.vs-flat{color:var(--dim);font-weight:500}
-  .metric .b-tag{font-size:9.5px;font-weight:600;opacity:.85}
+  .metric .b-tag{font-size:9.5px;font-weight:600;opacity:.9;margin-left:1px}
   .baseline-meta{font-size:10px;color:var(--dim);margin-left:auto;display:inline-flex;align-items:center;gap:4px}
   .break{margin:14px 0}.brow{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12px}
   .brow .bl{width:80px;color:var(--dim);font-weight:500}.brow .bb{flex:1;height:5px;background:var(--line);border-radius:4px;overflow:hidden}.brow .bb>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--good))}.brow .bv{width:30px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
@@ -490,6 +491,9 @@
   .cpbtn{background:none;border:1px solid var(--line);color:var(--dim);font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;cursor:pointer;transition:.12s;font-family:inherit;line-height:1.5}
   .cpbtn:hover{border-color:var(--accent);color:var(--accent-soft)}
   .cpbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .chart-refresh-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--line);color:var(--dim);font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;cursor:pointer;transition:.12s;font-family:inherit;line-height:1.5}
+  .chart-refresh-btn:hover{border-color:var(--accent);color:var(--accent-soft)}
+  .chart-refresh-btn:disabled{opacity:.5;cursor:wait}
   .chart-box{position:relative;width:100%;min-height:180px}
   .chart-box svg{display:block;width:100%;overflow:visible}
   .chart-perf{font-size:12px;font-weight:700;margin-bottom:6px}
@@ -1287,9 +1291,16 @@ function openM(d){
     else if(field==='pbr')   stockRaw=d.pbr;
     else if(field==='roe')   stockRaw=d.roe;
     else if(field==='divYieldPc') stockRaw=d.divYield!=null?d.divYield*100:null;
-    const indName=baseInd?(baseInd.name||'업종'):'';
-    const indRow=_baseRow('업종',indName,indV,_diffMeta(stockRaw,indV,lowerBetter),kind,'b-primary');
-    const mktRow=_baseRow('시장','',mktV,_diffMeta(stockRaw,mktV,lowerBetter),kind,'b-secondary');
+    // 업종 매칭이 실제로 됐을 때만 업종 줄 노출 (market 폴백이면 시장 줄만)
+    const hasIndustry=baseInd&&baseInd.kind==='industry';
+    let indRow='';
+    if(hasIndustry){
+      const indName=baseInd.name||'업종';
+      indRow=_baseRow('업종',indName,indV,_diffMeta(stockRaw,indV,lowerBetter),kind,'b-primary');
+    }
+    // 시장 줄: 업종 매칭이 있을 땐 보조(b-secondary), 없을 땐 1차(b-primary)로 승격
+    const mktLevel=hasIndustry?'b-secondary':'b-primary';
+    const mktRow=_baseRow('시장','KOSPI',mktV,_diffMeta(stockRaw,mktV,lowerBetter),kind,mktLevel);
     if(!indRow&&!mktRow)return '';
     return `<div class="b">${indRow}${mktRow}</div>`;
   };
@@ -1400,8 +1411,13 @@ function openM(d){
             <div class="modal-rsec-head">
               <h4><i data-lucide="trending-up" class="lc"></i>주가 차트</h4>
               <span id="chartPerf" class="chart-perf"></span>
+              <button class="chart-refresh-btn" id="chartRefreshBtn" onclick="refreshFromChart()" title="KIS 시세 새로고침">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                새로고침
+              </button>
             </div>
             <div class="chart-periods">
+              <button class="cpbtn" data-preset="2W" onclick="switchChartPreset('2W',this)">일간</button>
               <button class="cpbtn" data-preset="1M" onclick="switchChartPreset('1M',this)">1개월</button>
               <button class="cpbtn active" data-preset="3M" onclick="switchChartPreset('3M',this)">3개월</button>
               <button class="cpbtn" data-preset="1Y" onclick="switchChartPreset('1Y',this)">1년</button>
@@ -1438,6 +1454,14 @@ function ensureChart() {
   loadChart(_chartState.preset);
 }
 
+async function refreshFromChart() {
+  const btn = document.getElementById('chartRefreshBtn');
+  if (btn) { btn.disabled = true; btn.childNodes[btn.childNodes.length-1].textContent = ' 갱신 중…'; }
+  await refresh();
+  _chartState.loaded = false;
+  await loadChart(_chartState.preset);
+  if (btn) { btn.disabled = false; btn.childNodes[btn.childNodes.length-1].textContent = ' 새로고침'; }
+}
 function switchChartPreset(preset, btn) {
   document.querySelectorAll('.cpbtn').forEach(b => b.classList.toggle('active', b===btn));
   _chartState.preset = preset;
@@ -1518,7 +1542,7 @@ function buildLineChart(box, perfEl, rows, preset) {
 
   // X-axis date labels — preset-aware for readability
   function fmtDate(d) {
-    if (preset === '1M' || preset === '3M') return `${d.slice(4,6)}/${d.slice(6,8)}`;
+    if (preset === '2W' || preset === '1M' || preset === '3M') return `${d.slice(4,6)}/${d.slice(6,8)}`;
     if (preset === '1Y')  return `'${d.slice(2,4)}.${d.slice(4,6)}`;
     if (preset === '3Y' || preset === '5Y') return `${d.slice(0,4)}.${d.slice(4,6)}`;
     return `${d.slice(0,4)}년`;  // ALL
