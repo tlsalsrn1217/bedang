@@ -31,34 +31,32 @@ const sleep     = ms => new Promise(r => setTimeout(r, ms));
 const BASE_URL = 'https://openapi.koreainvestment.com:9443';
 
 // ── 토큰 관리 (24시간 유효, 만료 60초 전 자동 갱신) ──────────────
-let _token    = null;
-let _tokenExp = 0;
+let _token        = null;
+let _tokenExp     = 0;
+let _tokenPromise = null; // 동시 토큰 갱신 방지
 
 async function getToken() {
   if (_token && Date.now() < _tokenExp) return _token;
-
-  const key = process.env.KIS_APP_KEY;
-  const sec = process.env.KIS_APP_SECRET;
-  if (!key || !sec) {
-    throw new Error(
-      'KIS_APP_KEY / KIS_APP_SECRET 미설정.\n' +
-      '  → backend/.env 파일에 두 값을 추가하세요. (backend/.env.example 참고)'
-    );
+  if (!_tokenPromise) {
+    _tokenPromise = (async () => {
+      const key = process.env.KIS_APP_KEY;
+      const sec = process.env.KIS_APP_SECRET;
+      if (!key || !sec) throw new Error('KIS_APP_KEY / KIS_APP_SECRET 미설정');
+      const res = await fetch(`${BASE_URL}/oauth2/tokenP`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grant_type: 'client_credentials', appkey: key, appsecret: sec }),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) throw new Error(`KIS 토큰 발급 실패 HTTP ${res.status}`);
+      const d = await res.json();
+      if (!d.access_token) throw new Error(`KIS 토큰 없음: ${JSON.stringify(d)}`);
+      _token    = d.access_token;
+      _tokenExp = Date.now() + ((d.expires_in ?? 86400) - 60) * 1000;
+      return _token;
+    })().finally(() => { _tokenPromise = null; });
   }
-
-  const res = await fetch(`${BASE_URL}/oauth2/tokenP`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ grant_type: 'client_credentials', appkey: key, appsecret: sec }),
-  });
-  if (!res.ok) throw new Error(`KIS 토큰 발급 실패 HTTP ${res.status}: ${await res.text()}`);
-
-  const d = await res.json();
-  if (!d.access_token) throw new Error(`KIS 토큰 없음: ${JSON.stringify(d)}`);
-
-  _token    = d.access_token;
-  _tokenExp = Date.now() + ((d.expires_in ?? 86400) - 60) * 1000;
-  return _token;
+  return _tokenPromise;
 }
 
 // ── 단일 종목 지표 수집 ───────────────────────────────────────────
@@ -79,9 +77,10 @@ async function fetchMetrics(code) {
       authorization: `Bearer ${token}`,
       appkey:        key,
       appsecret:     sec,
-      tr_id:         'FHKST01010100', // 주식현재가 시세
-      custtype:      'P',             // P = 개인
+      tr_id:         'FHKST01010100',
+      custtype:      'P',
     },
+    signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) throw new Error(`KIS ${code} HTTP ${res.status}`);
 
@@ -119,23 +118,23 @@ async function fetchMetrics(code) {
   return data;
 }
 
-// ── 다수 종목 순차 수집 (실패 시 1회 재시도) ─────────────────────
-async function fetchMany(codes, delayMs = 350) {
-  const out = [];
-  for (const code of codes) {
-    try {
-      out.push(await fetchMetrics(code));
-    } catch (e) {
-      await sleep(1000);
+// ── 다수 종목 병렬 수집 (KIS 무료 20req/s 한도 내 concurrency=5) ──
+async function fetchMany(codes, concurrency = 5) {
+  const out   = new Array(codes.length);
+  const queue = codes.map((code, i) => ({ code, i }));
+  async function worker() {
+    while (queue.length) {
+      const { code, i } = queue.shift();
       try {
-        cache.delete(code); // 캐시 제거 후 재시도
-        out.push(await fetchMetrics(code));
-      } catch (e2) {
-        out.push({ code, error: String(e2.message ?? e2) });
+        out[i] = await fetchMetrics(code);
+      } catch (e) {
+        await sleep(400);
+        try { cache.delete(code); out[i] = await fetchMetrics(code); }
+        catch (e2) { out[i] = { code, error: String(e2.message ?? e2) }; }
       }
     }
-    await sleep(delayMs);
   }
+  await Promise.all(Array.from({ length: Math.min(concurrency, codes.length) }, worker));
   return out;
 }
 
