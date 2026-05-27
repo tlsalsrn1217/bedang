@@ -97,16 +97,36 @@ async function callGeminiGrounded(prompt, apiKey) {
   });
   if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${await res.text()}`);
   const data = await res.json();
-  return data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+  const cand = data?.candidates?.[0];
+  const text = cand?.content?.parts?.map(p => p.text).filter(Boolean).join('') || '';
+  // 그라운딩 메타: 실제 기사 제목 + (Vertex redirect) URI 페어
+  const chunks = cand?.groundingMetadata?.groundingChunks || [];
+  const groundingSources = chunks
+    .filter(c => c && c.web)
+    .map(c => ({ title: (c.web.title || '').trim(), url: c.web.uri || '' }))
+    .filter(s => s.url && s.title);
+  return { text, groundingSources };
 }
 
+/**
+ * 그라운딩 응답은 ```json 펜스·인용 마커·트레일링 텍스트가 흔해
+ * 단순 JSON.parse는 자주 실패한다. 견고한 추출:
+ *   1) 코드 펜스 제거
+ *   2) 첫 { ~ 마지막 } 추출
+ *   3) 트레일링 comma 보정
+ */
 function parseQualRaw(raw) {
-  let parsed;
-  try { parsed = JSON.parse(raw); } catch (_) {
-    const m = raw.match(/\{[\s\S]*\}/);
-    try { parsed = m ? JSON.parse(m[0]) : null; } catch (_) { parsed = null; }
-  }
-  return parsed;
+  if (!raw) return null;
+  let s = String(raw).trim();
+  s = s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  try { return JSON.parse(s); } catch (_) {}
+  const first = s.indexOf('{');
+  const last  = s.lastIndexOf('}');
+  if (first === -1 || last === -1 || last <= first) return null;
+  const body = s.slice(first, last + 1);
+  try { return JSON.parse(body); } catch (_) {}
+  try { return JSON.parse(body.replace(/,(\s*[}\]])/g, '$1')); } catch (_) {}
+  return null;
 }
 
 /**
@@ -159,8 +179,31 @@ function applyGuards(parsed) {
 }
 
 async function analyzeQualitative(stock, apiKey) {
-  const raw    = await callGeminiGrounded(buildQualitativePrompt(stock), apiKey);
-  const parsed = parseQualRaw(raw);
+  const { text, groundingSources } = await callGeminiGrounded(buildQualitativePrompt(stock), apiKey);
+  const parsed = parseQualRaw(text);
+
+  // 파싱 실패 시 — 그라운딩 출처라도 보여주며 재시도 안내
+  if (!parsed || typeof parsed !== 'object') {
+    return applyGuards({
+      contextNote: '응답이 예상 형식과 달라 분석을 파싱하지 못했습니다. ↻ 재분석을 한 번 더 눌러보세요.',
+      premiumTag: 'none',
+      sources:    groundingSources.slice(0, 5).map(g => ({ title: g.title, url: g.url, date: '' })),
+    });
+  }
+
+  // 그라운딩 메타의 실제 (title, url) 페어로 sources 대체 — 모델 date는 보존 시도
+  if (groundingSources.length > 0) {
+    const dateByTitle = {};
+    for (const s of parsed.sources || []) {
+      if (s && s.title && s.date) dateByTitle[s.title.trim()] = s.date;
+    }
+    parsed.sources = groundingSources.slice(0, 5).map(g => ({
+      title: g.title,
+      url:   g.url,
+      date:  dateByTitle[g.title] || '',
+    }));
+  }
+
   return applyGuards(parsed);
 }
 
