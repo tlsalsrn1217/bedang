@@ -47,23 +47,61 @@ const TIER_BY_DOMAIN = {
   'hankookilbo.com':      2,
 };
 
-// ── 등급 테이블 (Korean source name → 등급) ── Google RSS의 <source> 매칭용
+// ── 등급 테이블 (매체명 → 등급) ── 한국어·영문 별칭 함께. Google RSS <source> 매칭용.
 const TIER_BY_NAME = {
-  '연합뉴스':           1, '뉴시스':       1, '연합인포맥스': 1,
-  '한국경제':           1, '매일경제':     1, '서울경제':     1,
-  '조선비즈':           1, '조선일보':     1, '중앙일보':     1,
-  '동아일보':           1, '헤럴드경제':   1, '머니투데이':   1,
-  'KBS':                1, 'MBC':         1, 'SBS':          1, 'YTN':         1,
-  '한국경제TV':         1, 'MBN':         1, 'EBN':          2,
-  '금융감독원':         1, '한국거래소':   1,
-  '이데일리':           2, '아시아경제':   2, '파이낸셜뉴스': 2,
-  '데일리안':           2, '뉴스1':       2, '뉴스웨이':     2,
-  '뉴데일리':           2, '이투데이':     2, '뉴스토마토':   2,
-  '에너지경제':         2, '비즈니스포스트': 2, '더벨':       2,
-  '인베스트조선':       2, '전자신문':     2, 'ZDNet Korea': 2,
-  '데일리팜':           2,
-  '세계일보':           2, '문화일보':     2, '한국일보':     2,
-  '경향신문':           2, '한겨레':       2,
+  // 1등급 — 통신사
+  '연합뉴스': 1, 'Yonhap News': 1, 'Yonhap News Agency': 1, 'Yonhap': 1,
+  '뉴시스': 1, 'Newsis': 1,
+  '연합인포맥스': 1, 'Yonhap Infomax': 1,
+  // 1등급 — 주요 경제지
+  '한국경제': 1, '한국경제신문': 1, 'Korea Economic Daily': 1, 'The Korea Economic Daily': 1, 'Hankyung': 1,
+  '매일경제': 1, 'Maeil Business': 1, 'Maeil Business Newspaper': 1, 'MK': 1, 'mk.co.kr': 1,
+  '서울경제': 1, 'Seoul Economic Daily': 1, 'Sedaily': 1,
+  '조선비즈': 1, 'Chosun Biz': 1, 'ChosunBiz': 1,
+  '헤럴드경제': 1, 'Herald Economy': 1, 'Heraldcorp': 1,
+  '머니투데이': 1, 'Money Today': 1, 'MoneyToday': 1,
+  // 1등급 — 주요 종합지
+  '조선일보': 1, 'Chosun Ilbo': 1, 'The Chosun Daily': 1,
+  '중앙일보': 1, 'JoongAng Ilbo': 1, 'The JoongAng': 1, 'Korea JoongAng Daily': 1,
+  '동아일보': 1, 'Dong-A Ilbo': 1, 'The Dong-A Ilbo': 1,
+  '한겨레': 2, '한겨레신문': 2, 'Hankyoreh': 2, 'The Hankyoreh': 2,
+  '경향신문': 2, 'Kyunghyang Shinmun': 2,
+  // 1등급 — 공영방송·통신
+  'KBS': 1, 'KBS World': 1, 'KBS 뉴스': 1,
+  'MBC': 1, 'MBC 뉴스': 1, 'iMBC': 1,
+  'SBS': 1, 'SBS News': 1, 'SBS 뉴스': 1,
+  'YTN': 1, 'YTN 뉴스': 1,
+  '한국경제TV': 1, 'Korea Economic TV': 1,
+  'MBN': 1, '매일방송': 1,
+  '연합뉴스TV': 1, 'Yonhap News TV': 1,
+  // 1등급 — 공시·당국
+  '금융감독원': 1, '금감원': 1, '한국거래소': 1, 'DART': 1, '전자공시': 1,
+  // 2등급 — 일반 경제지
+  '이데일리': 2, 'Edaily': 2, 'eDaily': 2,
+  '아시아경제': 2, 'Asia Economy': 2, 'Asiae': 2,
+  '파이낸셜뉴스': 2, 'Financial News': 2,
+  '데일리안': 2, 'Daily An': 2, 'Dailian': 2,
+  '뉴스1': 2, 'News1': 2, 'News 1': 2,
+  '뉴스웨이': 2, 'Newsway': 2,
+  '뉴데일리': 2, 'New Daily': 2,
+  '이투데이': 2, 'Etoday': 2,
+  '뉴스토마토': 2, 'Newstomato': 2,
+  '에너지경제': 2, 'Energy Economy': 2, 'EKN': 2,
+  '비즈니스포스트': 2, 'Business Post': 2, 'BusinessPost': 2,
+  '더벨': 2, 'TheBell': 2, 'The Bell': 2,
+  '인베스트조선': 2, 'Invest Chosun': 2,
+  '전자신문': 2, 'ETNews': 2, 'Electronic Times': 2,
+  'ZDNet Korea': 2, 'ZDNet': 2,
+  '데일리팜': 2, 'Daily Pharm': 2,
+  '브릿지경제': 2, 'Bridge Economy': 2,
+  '머니S': 2, 'MoneyS': 2,
+  '포춘코리아': 2, 'Fortune Korea': 2,
+  '글로벌이코노믹': 2, 'Global Economic': 2,
+  // 2등급 — 일반 종합지
+  '세계일보': 2, 'Segye Ilbo': 2,
+  '문화일보': 2, 'Munhwa Ilbo': 2,
+  '한국일보': 2, 'Hankook Ilbo': 2, 'The Korea Times': 2,
+  '코리아헤럴드': 2, 'The Korea Herald': 2, 'Korea Herald': 2,
 };
 
 // ── 이슈 유형 키워드 (제목 매칭) ──────────────────────────────
@@ -81,21 +119,32 @@ function domainOf(url) {
   catch (_) { return ''; }
 }
 
-function tierOf(source, url) {
+function _tierByDomain(url) {
   const dom = domainOf(url);
-  if (dom && TIER_BY_DOMAIN[dom]) return TIER_BY_DOMAIN[dom];
-  // 도메인이 path 깊은 서브도메인이면 마지막 두 토큰으로 한 번 더 시도
-  if (dom) {
-    const parts = dom.split('.');
-    if (parts.length > 2) {
-      const root = parts.slice(-2).join('.');
-      if (TIER_BY_DOMAIN[root]) return TIER_BY_DOMAIN[root];
-    }
+  if (!dom) return null;
+  if (TIER_BY_DOMAIN[dom]) return TIER_BY_DOMAIN[dom];
+  // 서브도메인이면 root 도메인(예: biz.chosun.com → chosun.com)으로 한 번 더 시도
+  const parts = dom.split('.');
+  if (parts.length > 2) {
+    const root = parts.slice(-2).join('.');
+    if (TIER_BY_DOMAIN[root]) return TIER_BY_DOMAIN[root];
+  }
+  return null;
+}
+function tierOf(source, url, sourceUrl) {
+  // 1) source가 들고 있는 원본 URL(가능 시) → 2) 기사 link → 3) 매체명 매칭 순
+  for (const u of [sourceUrl, url]) {
+    const t = u ? _tierByDomain(u) : null;
+    if (t) return t;
   }
   if (source) {
     for (const [name, tier] of Object.entries(TIER_BY_NAME)) {
       if (source.includes(name)) return tier;
     }
+  }
+  // 미분류 — 추후 매핑 보강용 진단 로그(1줄)
+  if (process.env.NEWS_DEBUG_UNKNOWN === '1') {
+    console.warn('[news] unknown tier', { source, url, sourceUrl, dom: domainOf(sourceUrl || url) });
   }
   return 3;
 }
@@ -151,12 +200,15 @@ async function fetchGoogleItems(stockName) {
       const x = t.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`));
       return x ? x[1].replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, '').trim() : '';
     };
-    const linkM   = t.match(/<link[^/]?\/?>\s*(https?:\/\/[^\s<]+)/);
-    const link    = linkM ? linkM[1].trim() : get('guid');
-    const title   = get('title');
-    const pubDate = get('pubDate');
-    const source  = get('source') || domainToSource(link);
-    if (title && link) out.push({ title, link, pubDate, source, via: 'google',
+    const linkM     = t.match(/<link[^/]?\/?>\s*(https?:\/\/[^\s<]+)/);
+    const link      = linkM ? linkM[1].trim() : get('guid');
+    const title     = get('title');
+    const pubDate   = get('pubDate');
+    // Google RSS의 <source url="https://원본매체.com">매체명</source> — url 속성에 원본 도메인이 들어있음
+    const srcAttrM  = t.match(/<source[^>]*url="([^"]+)"/i);
+    const sourceUrl = srcAttrM ? srcAttrM[1] : '';
+    const source    = get('source') || domainToSource(sourceUrl || link);
+    if (title && link) out.push({ title, link, pubDate, source, sourceUrl, via: 'google',
       ts: pubDate ? new Date(pubDate).getTime() : 0 });
   }
   return out;
@@ -219,10 +271,10 @@ async function searchNews(stockName, opts = {}) {
     seen.add(k); return true;
   });
 
-  // 등급·유형 부가
+  // 등급·유형 부가 (Google 항목은 sourceUrl 속성도 활용)
   merged = merged.map(n => ({
     ...n,
-    tier:  tierOf(n.source, n.link),
+    tier:  tierOf(n.source, n.link, n.sourceUrl),
     types: detectTypes(n.title),
   }));
 
@@ -255,7 +307,7 @@ async function searchNews(stockName, opts = {}) {
     });
   }
 
-  return merged.slice(0, limit).map(({ ts, ...n }) => n);
+  return merged.slice(0, limit).map(({ ts, sourceUrl, ...n }) => n);
 }
 
 module.exports = { searchNews, tierOf, detectTypes, ISSUE_TYPES };
