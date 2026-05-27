@@ -176,4 +176,49 @@ isDividend가 false이면 dividendWarning에 한 문장으로 이유 작성. 배
   return parsed || { category: categories[0] || '기타', isDividend: null, dividendWarning: '' };
 }
 
-module.exports = { explainStock, streamExplainStock, parseExplainRaw, recommendConfig, classifyCategory, classifyAndCheck, MODEL, PRO_MODEL };
+/* ── (5) 뉴스 영향도 분류 — 정성 레이어 보조 ── */
+async function classifyNewsImpact(stockName, items, apiKey) {
+  apiKey = apiKey || process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('GEMINI_API_KEY 미설정');
+  if (!Array.isArray(items) || items.length === 0) return [];
+  const list = items.slice(0, 8);
+  const titles = list.map((n, i) => `${i + 1}. ${n.title}`).join('\n');
+  const prompt = `당신은 한국 주식 시장 뉴스 분석가입니다. "${stockName}" 관련 뉴스 ${list.length}건을 각각 분류하세요. 주가 영향이 이미 가격에 반영되었는지를 기준으로 합니다.
+
+[분류 라벨]
+- priced_in: 시장이 이미 알고 가격에 반영했을 정보 (이미 발표된 실적·공시·확정 사실)
+- not_priced_in: 미래 잠재 이벤트, 새로 부각된 변수, 시장이 아직 충분히 반영하지 못했을 가능성
+- neutral: 주가 영향이 미미하거나 일반 정보성 보도
+
+[표현 규칙]
+- reason은 한 줄(40자 이내), 추측형. "~로 보임", "~가능성".
+- 단정 표현 금지.
+
+[뉴스]
+${titles}
+
+[★ 출력]
+- 첫 글자는 반드시 [, 마지막 글자는 ].
+- 코드펜스(\`\`\`)·머리말·요약 절대 금지.
+- 형식: [{"index":1,"impact":"priced_in","reason":"..."}, ...]
+- index는 1부터 시작 (위 목록 순서).`;
+  const raw = await callGemini(prompt, { model: MODEL, json: true, apiKey });
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch (_) {
+    const m = String(raw).match(/\[[\s\S]*\]/);
+    try { parsed = m ? JSON.parse(m[0]) : null; } catch (_) { parsed = null; }
+  }
+  if (!Array.isArray(parsed)) return [];
+  const VALID = new Set(['priced_in', 'not_priced_in', 'neutral']);
+  const FORBIDDEN = /(반드시|확실히|보장|무조건)/;
+  return parsed
+    .filter(x => x && typeof x === 'object')
+    .map(x => ({
+      index:  Number(x.index) || 0,
+      impact: VALID.has(x.impact) ? x.impact : 'neutral',
+      reason: FORBIDDEN.test(String(x.reason || '')) ? '' : String(x.reason || '').trim().slice(0, 80),
+    }))
+    .filter(x => x.index >= 1 && x.index <= list.length);
+}
+
+module.exports = { explainStock, streamExplainStock, parseExplainRaw, recommendConfig, classifyCategory, classifyAndCheck, classifyNewsImpact, MODEL, PRO_MODEL };

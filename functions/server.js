@@ -9,7 +9,7 @@ const crypto  = require('crypto');
 const { getFirestore } = require('firebase-admin/firestore');
 const { scoreStocks, DEFAULT_CONFIG } = require('./scoring');
 const { fetchMetrics, fetchMany, clearCache } = require('./crawler');
-const { explainStock, parseExplainRaw, recommendConfig, classifyAndCheck } = require('./llm');
+const { explainStock, parseExplainRaw, recommendConfig, classifyAndCheck, classifyNewsImpact } = require('./llm');
 const { analyzeQualitative } = require('./qualitative');
 const { load, save, loadQualitative, saveQualitative, loadAllQualitative } = require('./db');
 
@@ -339,6 +339,21 @@ app.post('/api/qualitative/:code', wrap(async (req, res) => {
     const at     = new Date().toISOString();
     await saveQualitative(uid, stock.name, { result, at, score: stock.score });
     res.json({ qualitative: result, at });
+  } catch (e) {
+    res.status(500).json({ error: String(e.message || e) });
+  }
+}));
+
+// 뉴스 영향도 분류 (정성 레이어 보조 — 명시 버튼 호출만, 캐시 없음)
+app.post('/api/news-classify', wrap(async (req, res) => {
+  const uid = getUid(req);
+  if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
+  const { stockName, items } = req.body || {};
+  if (!stockName || !Array.isArray(items) || items.length === 0)
+    return res.status(400).json({ error: 'stockName, items 필수' });
+  try {
+    const classifications = await classifyNewsImpact(stockName, items);
+    res.json({ classifications });
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
   }
