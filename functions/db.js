@@ -109,4 +109,16 @@ async function loadAllQualitative(uid) {
   return out;
 }
 
-module.exports = { load, save, loadQualitative, saveQualitative, loadAllQualitative };
+// ── 시장·업종 기준선 (전 사용자 공유, appData 단건) ─────────────
+async function loadBaseline() {
+  const db   = getFirestore();
+  const snap = await db.doc('appData/baseline').get();
+  return snap.exists ? snap.data() : null;
+}
+
+async function saveBaseline(data) {
+  const db = getFirestore();
+  await db.doc('appData/baseline').set(clean(data));
+}
+
+module.exports = { load, save, loadQualitative, saveQualitative, loadAllQualitative, loadBaseline, saveBaseline };

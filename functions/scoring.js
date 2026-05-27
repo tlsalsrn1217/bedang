@@ -107,7 +107,30 @@ function deepMerge(base, over) {
   return out;
 }
 
-function scoreStocks(stocks, userConfig = {}) {
+// 중앙값(기준선) 대비 종목 지표 → 0~100 점수
+// higherBetter=false (PER/PBR, 낮을수록 좋음): 중앙값과 같으면 50, 절반/두 배에서 100/0 클램프
+// higherBetter=true  (divYield, 높을수록 좋음): 중앙값과 같으면 50, 두 배/0에서 100/0
+function _relFromMedian(value, median, higherBetter) {
+  if (value == null || median == null || !Number.isFinite(median) || median <= 0) return null;
+  if (!Number.isFinite(value)) return null;
+  const ratio = value / median;
+  const raw   = higherBetter ? 50 + (ratio - 1) * 50 : 50 + (1 - ratio) * 50;
+  return Math.max(0, Math.min(100, raw));
+}
+
+// 종목 매칭되는 기준선: industry → sector → KOSPI → KOSDAQ
+function _pickBaseline(baseline, stock) {
+  if (!baseline) return null;
+  const ind = stock.industry || stock.category;
+  const sec = stock.sector   || stock.category;
+  return (baseline.industries?.[ind])
+      || (baseline.industries?.[sec])
+      || baseline.market?.kospi
+      || baseline.market?.kosdaq
+      || null;
+}
+
+function scoreStocks(stocks, userConfig = {}, baseline = null) {
   // null 키 제거 후 머지
   const clean = {};
   for (const k of Object.keys(userConfig || {})) {
@@ -156,16 +179,25 @@ function scoreStocks(stocks, userConfig = {}) {
       if (prevDps !== null && avgDps !== null && prevDps < avgDps * cfg.thresholds.divCutRatio)
         flags.push('배당 삭감 (전년 배당이 4년평균 대비 큰 폭 감소)');
 
-      // 1층 지표
-      const vPbr = percentileRank(pbr, pbrs, false);
-      const vPer = per !== null && per > 0 ? percentileRank(per, pers, false) : 30;
+      // 1층 지표 — baseline(시장·업종 중앙값)이 있으면 그 기준 위에서 상대점수,
+      // 없으면 기존 동종 분포 백분위로 폴백. ROE는 baseline 미제공이라 항상 분포 폴백.
+      const base = _pickBaseline(baseline, i);
+
+      const vPbrRel = base ? _relFromMedian(pbr, base.pbr, false) : null;
+      const vPerRel = (base && per !== null && per > 0) ? _relFromMedian(per, base.per, false) : null;
+      const vPbr = vPbrRel ?? percentileRank(pbr, pbrs, false);
+      const vPer = vPerRel ?? (per !== null && per > 0 ? percentileRank(per, pers, false) : 30);
       const value = cfg.valueMix.pbr * vPbr + cfg.valueMix.per * vPer;
 
       const pRoe = percentileRank(roe, roes, true);
       const pRp = percentileRank(rpbr[idx], rpbr, true);
       const profit = cfg.profitMix.roe * pRoe + cfg.profitMix.roePerPbr * pRp;
 
-      const yieldScore = percentileRank(toNum(i.divYield), dys, true);
+      // 배당률: 우리 데이터는 비율(0.05), baseline.divYieldPc는 퍼센트(5.0)라 ×100 보정
+      const dyRel = (base && base.divYieldPc != null)
+        ? _relFromMedian((toNum(i.divYield) ?? 0) * 100, base.divYieldPc, true)
+        : null;
+      const yieldScore = dyRel ?? percentileRank(toNum(i.divYield), dys, true);
 
       let durability = 50;
       if (prevDps !== null && avgDps !== null && avgDps > 0) {
@@ -210,6 +242,13 @@ function scoreStocks(stocks, userConfig = {}) {
           growth: +growth.toFixed(1), liquidity: +liquidity.toFixed(1),
           weights: W,
         },
+        // 기준선 메타(있으면) — UI 병기용
+        baseline: base ? {
+          name:       base.krxName || base.name || null,
+          per:        base.per ?? null,
+          pbr:        base.pbr ?? null,
+          divYieldPc: base.divYieldPc ?? null,
+        } : null,
       });
     });
   }

@@ -12,7 +12,8 @@ const { fetchMetrics, fetchMany, clearCache } = require('./crawler');
 const { explainStock, parseExplainRaw, recommendConfig, classifyAndCheck, classifyNewsImpact } = require('./llm');
 const { analyzeQualitative } = require('./qualitative');
 const { searchNews } = require('./news');
-const { load, save, loadQualitative, saveQualitative, loadAllQualitative } = require('./db');
+const { buildBaseline } = require('./baseline');
+const { load, save, loadQualitative, saveQualitative, loadAllQualitative, loadBaseline, saveBaseline } = require('./db');
 
 // ── JWT 유틸 (외부 패키지 없이 순수 crypto) ──────────────────────
 
@@ -142,12 +143,59 @@ function isMarketOpen() {
 
 // ── 주식 API ──────────────────────────────────────────────────────
 
+// baseline 자동 갱신 가드 — 인스턴스 내 동시 빌드 방지
+let _baselineBuilding = false;
+function _maybeAutoRefreshBaseline(baseline) {
+  if (_baselineBuilding) return;
+  const stale = !baseline || !baseline.updatedAt ||
+                (Date.now() - new Date(baseline.updatedAt).getTime() > 24 * 3600 * 1000);
+  if (!stale) return;
+  _baselineBuilding = true;
+  buildBaseline()
+    .then(b => saveBaseline(b).then(() => console.log('[baseline] auto-refreshed', b.asOf, 'industries=', Object.keys(b.industries).length)))
+    .catch(e => console.error('[baseline] auto-refresh failed:', e.message))
+    .finally(() => { _baselineBuilding = false; });
+}
+
 app.get('/api/stocks', wrap(async (req, res) => {
   const uid = getUid(req);
   if (uid) await seedUserIfEmpty(uid);
-  const db     = await load(uid);
-  const scored = applyGrades(scoreStocks(db.stocks, db.settings));
-  res.json({ stocks: scored, lastRefresh: db.lastRefresh, marketOpen: isMarketOpen() });
+  const [dbData, baseline] = await Promise.all([load(uid), loadBaseline()]);
+  _maybeAutoRefreshBaseline(baseline);
+  const scored = applyGrades(scoreStocks(dbData.stocks, dbData.settings, baseline));
+  res.json({
+    stocks:       scored,
+    lastRefresh:  dbData.lastRefresh,
+    marketOpen:   isMarketOpen(),
+    baselineAsOf: baseline?.asOf || null,
+  });
+}));
+
+// 시장·업종 기준선 조회 (랭킹/모달이 사용) — 캐시된 값만, 자동 갱신 없음
+app.get('/api/baseline', wrap(async (req, res) => {
+  const baseline = await loadBaseline();
+  res.json({ baseline });
+}));
+
+// 기준선 수동 갱신 (로그인 사용자면 누구나, 일 1회 권장)
+app.post('/api/baseline/refresh', wrap(async (req, res) => {
+  const uid = getUid(req);
+  if (!uid) return res.status(401).json({ error: '로그인 필요' });
+  try {
+    const baseline = await buildBaseline();
+    await saveBaseline(baseline);
+    res.json({
+      ok:           true,
+      asOf:         baseline.asOf,
+      industries:   Object.keys(baseline.industries || {}),
+      marketKospi:  baseline.market?.kospi  ? '있음' : '없음',
+      marketKosdaq: baseline.market?.kosdaq ? '있음' : '없음',
+      rawCount:     baseline.rawCount,
+    });
+  } catch (e) {
+    console.error('[baseline] refresh error:', e.message);
+    res.status(500).json({ error: String(e.message || e) });
+  }
 }));
 
 app.get('/api/search-stock', wrap(async (req, res) => {
@@ -278,9 +326,9 @@ app.post('/api/refresh', wrap(async (req, res) => {
 
 app.get('/api/explain/:code', wrap(async (req, res) => {
   const uid    = getUid(req);
-  const db     = await load(uid);
+  const [db, baseline] = await Promise.all([load(uid), loadBaseline()]);
   const key    = decodeURIComponent(req.params.code);
-  const scored = scoreStocks(db.stocks, db.settings);
+  const scored = scoreStocks(db.stocks, db.settings, baseline);
   const stock  = scored.find(s => s.code === key || s.name === key);
   if (!stock) return res.json({ explanation: null, at: null });
   const cached = db.explanations?.[stock.name];
@@ -292,9 +340,9 @@ app.get('/api/explain/:code', wrap(async (req, res) => {
 app.post('/api/explain/:code', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
-  const db     = await load(uid);
+  const [db, baseline] = await Promise.all([load(uid), loadBaseline()]);
   const key    = decodeURIComponent(req.params.code);
-  const scored = scoreStocks(db.stocks, db.settings);
+  const scored = scoreStocks(db.stocks, db.settings, baseline);
   const stock  = scored.find(s => s.code === key || s.name === key);
   if (!stock) return res.status(404).json({ error: '종목 없음' });
   try {
@@ -330,9 +378,9 @@ app.get('/api/qualitative/:code', wrap(async (req, res) => {
 app.post('/api/qualitative/:code', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
-  const db     = await load(uid);
+  const [db, baseline] = await Promise.all([load(uid), loadBaseline()]);
   const key    = decodeURIComponent(req.params.code);
-  const scored = scoreStocks(db.stocks, db.settings);
+  const scored = scoreStocks(db.stocks, db.settings, baseline);
   const stock  = scored.find(s => s.code === key || s.name === key);
   if (!stock) return res.status(404).json({ error: '종목 없음' });
   try {
