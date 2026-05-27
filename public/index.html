@@ -137,6 +137,23 @@
   .row-qtag.overvalued{color:var(--bad)}
   .row-qtag.dip{color:var(--warn)}
   .row-qtag.asset{color:var(--soft)}
+  /* 정성 태그 안내 버튼 + 팝업 */
+  .qtag-help-btn{background:none;border:1px solid var(--line);color:var(--dim);cursor:pointer;padding:0;width:15px;height:15px;border-radius:50%;margin-left:5px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center;transition:.12s;flex-shrink:0}
+  .qtag-help-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+  .qtag-help-btn svg{width:9px;height:9px;stroke-width:2.5}
+  .qtag-leg-ov{position:fixed;inset:0;z-index:70;display:none}
+  .qtag-leg-ov.on{display:block}
+  .qtag-leg{position:fixed;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;width:310px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:fade .2s ease}
+  .qtag-leg h5{font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.05em;text-transform:uppercase;margin:0 0 12px}
+  .qtag-leg-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2)}
+  .qtag-leg-item:last-child{border-bottom:none;padding-bottom:0}
+  .qtag-leg-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .qtag-leg-ico.growth{background:rgba(49,130,246,.12)}
+  .qtag-leg-ico.overvalued{background:rgba(229,83,75,.12)}
+  .qtag-leg-ico.dip{background:rgba(245,158,11,.12)}
+  .qtag-leg-ico.asset{background:rgba(124,136,150,.12)}
+  .qtag-leg-body .ln{font-size:13px;font-weight:700;margin-bottom:3px}
+  .qtag-leg-body .ld{font-size:11px;color:var(--dim);line-height:1.6}
   .qual-tag .lc{width:16px;height:16px;vertical-align:-3px}
   .modal-rsec-head h4 .lc{width:14px;height:14px;color:var(--dim);margin-right:4px}
   /* 모달 우측 탭 (AI 지표 분석 카드 바로 위) */
@@ -447,7 +464,7 @@
       <button onclick="openAddStock()" class="applybtn" style="white-space:nowrap;flex-shrink:0;margin-top:4px">+ 종목 추가</button>
     </div>
     <table><thead><tr>
-      <th>#</th><th>종목</th>
+      <th>#</th><th>종목<button class="qtag-help-btn" id="qtagHelpBtn" onclick="event.stopPropagation();toggleQtagLeg(event)" title="정성 태그 아이콘 안내"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button></th>
       <th class="num core">PER<span class="help" onclick="event.stopPropagation();gloss('PER')">?</span></th>
       <th class="num core">PBR<span class="help" onclick="event.stopPropagation();gloss('PBR')">?</span></th>
       <th class="num core">ROE<span class="help" onclick="event.stopPropagation();gloss('ROE')">?</span></th>
@@ -1207,6 +1224,18 @@ function switchModalTab(name){
   document.querySelectorAll('.modal-tab-content').forEach(c=>c.classList.toggle('hidden',c.dataset.mtab!==name));
 }
 function closeM(){document.getElementById('ov').classList.remove('on');document.body.style.overflow='';}
+function toggleQtagLeg(e){
+  const ov=document.getElementById('qtagLegOv');
+  const pop=document.getElementById('qtagLeg');
+  if(ov.classList.contains('on')){closeQtagLeg();return;}
+  const r=e.currentTarget.getBoundingClientRect();
+  const left=Math.max(8,Math.min(r.left,window.innerWidth-326));
+  pop.style.left=left+'px';
+  pop.style.top=(r.bottom+8)+'px';
+  ov.classList.add('on');
+  if(window.lucide&&lucide.createIcons)lucide.createIcons();
+}
+function closeQtagLeg(){document.getElementById('qtagLegOv').classList.remove('on');}
 // 모달 단위 뉴스 캐시 (영향도 분류용)
 let _lastNewsItems=[], _lastNewsStock='';
 function _impactLabel(impact){
@@ -2258,6 +2287,41 @@ function toggleNav(){
   document.getElementById('navBackdrop').classList.toggle('on');
 }
 </script></div></div>
+
+<!-- 정성 태그 아이콘 설명 팝업 -->
+<div class="qtag-leg-ov" id="qtagLegOv" onclick="closeQtagLeg()">
+  <div class="qtag-leg" id="qtagLeg" onclick="event.stopPropagation()">
+    <h5>정성 태그 아이콘 — 이렇게 보세요</h5>
+    <div class="qtag-leg-item">
+      <div class="qtag-leg-ico growth"><i data-lucide="rocket" style="width:16px;height:16px;stroke-width:2;color:var(--accent-soft)"></i></div>
+      <div class="qtag-leg-body">
+        <div class="ln" style="color:var(--accent-soft)">성장 기대형</div>
+        <div class="ld">PER·PBR이 높지만 시장이 미래 성장을 기대하는 종목입니다. 점수는 낮아도 단순 고평가로 단정하기 어렵습니다.</div>
+      </div>
+    </div>
+    <div class="qtag-leg-item">
+      <div class="qtag-leg-ico overvalued"><i data-lucide="alert-triangle" style="width:16px;height:16px;stroke-width:2;color:var(--bad)"></i></div>
+      <div class="qtag-leg-body">
+        <div class="ln" style="color:var(--bad)">단순 고평가</div>
+        <div class="ld">뚜렷한 미래 호재 없이 PER·PBR이 높습니다. 현재 주가가 실적 대비 과열 가능성이 있습니다.</div>
+      </div>
+    </div>
+    <div class="qtag-leg-item">
+      <div class="qtag-leg-ico dip"><i data-lucide="trending-down" style="width:16px;height:16px;stroke-width:2;color:var(--warn)"></i></div>
+      <div class="qtag-leg-body">
+        <div class="ln" style="color:var(--warn)">이익 일시 급감</div>
+        <div class="ld">일회성 비용으로 최근 순이익이 크게 줄어 PER가 왜곡된 상태입니다. 정상 이익 기준으로 다시 볼 필요가 있습니다.</div>
+      </div>
+    </div>
+    <div class="qtag-leg-item">
+      <div class="qtag-leg-ico asset"><i data-lucide="layers" style="width:16px;height:16px;stroke-width:2;color:var(--soft)"></i></div>
+      <div class="qtag-leg-body">
+        <div class="ln" style="color:var(--soft)">자산 저평가 가림</div>
+        <div class="ld">PBR이 낮지만 보유 자산(부동산·자회사·현금)이 커서 저PBR처럼 보입니다. 본업 수익력을 별도로 확인하세요.</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- 기준 지표 FAB -->
 <button class="bm-fab" id="bmFab" onclick="openBmPopup()" title="카테고리 기준 지표">
