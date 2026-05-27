@@ -80,12 +80,20 @@
   .modal-rsec-head h4{font-size:13px;font-weight:700;letter-spacing:-.02em;color:var(--txt);margin:0}
   .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
   .metric{background:var(--paper2);border-radius:10px;padding:10px 12px;border:1px solid var(--line2)}.metric .l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600}.metric .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px;letter-spacing:-.01em}
-  /* 기준선 병기 (업종 / 시장 평균) */
-  .metric .b{font-size:10px;color:var(--dim);margin-top:5px;line-height:1.5;font-variant-numeric:tabular-nums}
-  .metric .b .ind{color:var(--accent-soft);font-weight:600}
-  .metric .b .mkt{color:var(--soft)}
-  .metric .b .vs-cheap{color:var(--good);font-weight:700}
-  .metric .b .vs-rich{color:var(--bad);font-weight:700}
+  /* 기준선 병기 — 2줄 정렬 구조, 업종이 1차·시장이 보조 */
+  .metric .b{margin-top:8px;display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums;border-top:1px solid var(--line2);padding-top:7px}
+  .metric .b-row{display:grid;grid-template-columns:minmax(0,auto) 1fr minmax(0,auto);column-gap:8px;align-items:baseline;line-height:1.4}
+  .metric .b-row.b-primary{color:var(--soft);font-size:11px;font-weight:600}
+  .metric .b-row.b-secondary{color:var(--dim);font-size:10.5px;font-weight:500}
+  .metric .b-label{white-space:nowrap}
+  .metric .b-sub{color:var(--dim);font-weight:500;margin-left:2px;font-size:.92em}
+  .metric .b-val{text-align:right;color:var(--txt);font-weight:600}
+  .metric .b-row.b-secondary .b-val{color:var(--soft);font-weight:500}
+  .metric .b-diff{display:inline-flex;align-items:baseline;gap:3px;font-size:10.5px;font-weight:700;justify-self:end;white-space:nowrap}
+  .metric .b-diff.vs-good{color:var(--good)}
+  .metric .b-diff.vs-bad{color:var(--bad)}
+  .metric .b-diff.vs-flat{color:var(--dim);font-weight:500}
+  .metric .b-tag{font-size:9.5px;font-weight:600;opacity:.85}
   .baseline-meta{font-size:10px;color:var(--dim);margin-left:auto;display:inline-flex;align-items:center;gap:4px}
   .break{margin:14px 0}.brow{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12px}
   .brow .bl{width:80px;color:var(--dim);font-weight:500}.brow .bb{flex:1;height:5px;background:var(--line);border-radius:4px;overflow:hidden}.brow .bb>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--good))}.brow .bv{width:30px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
@@ -1175,8 +1183,9 @@ function _qualIconHtml(name){
 // 등락 표기 helper — prdy_vrss_sign: 1=상한 2=상승 3=보합 4=하한 5=하락
 function _fmtChgInline(d){
   const sign=d.prdy_vrss_sign;
-  const noData=!sign||(!d.prdy_vrss&&!d.prdy_ctrt);
-  if(noData||sign==='3')return '<span class="chg flat">—</span>';
+  const noData=!sign||(d.prdy_vrss==null&&d.prdy_ctrt==null);
+  if(noData)return ''; // 데이터 없으면 자리 잔재 남기지 않음
+  if(sign==='3')return '<span class="chg flat">보합 0 (0.00%)</span>';
   const isUp=sign==='1'||sign==='2';
   const isDn=sign==='4'||sign==='5';
   const cls=isUp?'up':isDn?'dn':'flat';
@@ -1250,12 +1259,24 @@ function openM(d){
     const n=Number(v);
     return kind==='pct'?n.toFixed(2)+'%':n.toFixed(2);
   };
-  const _vsArrow=(stockVal,med,lowerBetter)=>{
-    if(stockVal==null||med==null||!Number.isFinite(med)||med<=0)return '';
+  // lowerBetter=true: PER/PBR (낮을수록 좋음) → 저평가/고평가
+  // lowerBetter=false: ROE/배당률 (높을수록 좋음) → 우수/부진
+  const _diffMeta=(stockVal,med,lowerBetter)=>{
+    if(stockVal==null||med==null||!Number.isFinite(med)||med<=0)return null;
     const pct=(stockVal-med)/med*100;
-    if(Math.abs(pct)<3)return '';
-    const cheap=lowerBetter?pct<0:pct>0;
-    return ` <span class="${cheap?'vs-cheap':'vs-rich'}" title="${cheap?'평균보다 유리':'평균보다 불리'}">${pct>0?'+':''}${pct.toFixed(0)}%</span>`;
+    if(Math.abs(pct)<3)return {arrow:'≈',pctTxt:'',cls:'vs-flat',tag:'비슷'};
+    const isLow=pct<0;
+    const good=lowerBetter?isLow:!isLow;
+    const arrow=isLow?'▼':'▲';
+    const tag=lowerBetter?(good?'저평가':'고평가'):(good?'우수':'부진');
+    return {arrow,pctTxt:Math.abs(pct).toFixed(0)+'%',cls:good?'vs-good':'vs-bad',tag};
+  };
+  const _baseRow=(labelMain,sub,v,diff,kind,levelCls)=>{
+    if(v==null)return '';
+    const diffHtml=diff
+      ? `<span class="b-diff ${diff.cls}">${diff.arrow}${diff.pctTxt?' '+diff.pctTxt:''}<span class="b-tag">${diff.tag}</span></span>`
+      : '<span></span>';
+    return `<div class="b-row ${levelCls}"><span class="b-label">${labelMain}${sub?`<span class="b-sub">(${sub})</span>`:''}</span><span class="b-val">${_fmtBase(v,kind)}</span>${diffHtml}</div>`;
   };
   const baseCell=(field,kind,lowerBetter)=>{
     const indV=baseInd?baseInd[field]:null;
@@ -1266,10 +1287,11 @@ function openM(d){
     else if(field==='pbr')   stockRaw=d.pbr;
     else if(field==='roe')   stockRaw=d.roe;
     else if(field==='divYieldPc') stockRaw=d.divYield!=null?d.divYield*100:null;
-    const indName=baseInd?(baseInd.name||baseInd.krxName||'업종'):'업종';
-    const indHtml=indV!=null?`<span class="ind">${indName} ${_fmtBase(indV,kind)}${_vsArrow(stockRaw,indV,lowerBetter)}</span>`:`<span class="ind" style="color:var(--dim)">${indName} -</span>`;
-    const mktHtml=mktV!=null?`<span class="mkt">시장 ${_fmtBase(mktV,kind)}${_vsArrow(stockRaw,mktV,lowerBetter)}</span>`:'';
-    return `<div class="b">${indHtml}${mktHtml?' · '+mktHtml:''}</div>`;
+    const indName=baseInd?(baseInd.name||'업종'):'';
+    const indRow=_baseRow('업종',indName,indV,_diffMeta(stockRaw,indV,lowerBetter),kind,'b-primary');
+    const mktRow=_baseRow('시장','',mktV,_diffMeta(stockRaw,mktV,lowerBetter),kind,'b-secondary');
+    if(!indRow&&!mktRow)return '';
+    return `<div class="b">${indRow}${mktRow}</div>`;
   };
   document.getElementById('modal').innerHTML=`
     <button class="mclose" onclick="closeM()">×</button>
@@ -1920,14 +1942,26 @@ async function refreshDataSilent() {
   } catch(e) {}
 }
 
+function showToast(msg, ms=3000){
+  let t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';
+    t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1c2330;color:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 18px;font-size:12px;z-index:9999;white-space:pre-wrap;max-width:380px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.4)';
+    document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._to);t._to=setTimeout(()=>{t.style.opacity='0';},ms);
+}
 async function refresh(){
   const btn=document.querySelector('.refresh');
   if(btn){btn.disabled=true;btn.textContent='갱신 중…';}
   try{
     const r=await apiFetch('/api/refresh',{method:'POST'});
     const j=await r.json();
-    if(j.ok){await refreshDataSilent();}
-    else{alert('실패: '+(j.error||''));}
+    if(j.ok){
+      await refreshDataSilent();
+      if(j.failed&&j.failed.length){
+        showToast(`⚠ ${j.failed.length}개 종목 갱신 실패: ${j.failed.join(', ')}`, 6000);
+      }
+    }else{alert('실패: '+(j.error||''));}
   }catch(e){alert('⚠️ 백엔드 미연결. 데모는 시드 데이터로만 표시됩니다.');}
   if(btn){btn.disabled=false;btn.textContent='↻ 새로고침';}
 }
