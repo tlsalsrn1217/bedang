@@ -126,15 +126,16 @@
   .lc{width:14px;height:14px;stroke-width:2;vertical-align:-2px;flex-shrink:0}
   .qual-tag .lc{width:16px;height:16px;vertical-align:-3px}
   .modal-rsec-head h4 .lc{width:14px;height:14px;color:var(--dim);margin-right:4px}
-  /* 모달 헤더 행 (좌: 제목·등급 / 우: 탭) — 좌측 PER/PBR 카드와 우측 카드 상단 정렬용 */
-  .modal-header-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:0;margin-top:4px}
-  .modal-title-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:10px}
-  .modal-tabs{display:flex;gap:2px;align-self:stretch;align-items:flex-end}
+  /* 모달 우측 탭 (AI 지표 분석 카드 바로 위) */
+  .modal-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px}
   .modal-tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.13s;letter-spacing:-.02em;display:inline-flex;align-items:center;gap:6px;margin-bottom:-1px;font-family:inherit}
   .modal-tab:hover{color:var(--soft)}
   .modal-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
   .modal-tab-content{display:flex;flex-direction:column;gap:14px}
   .modal-tab-content.hidden{display:none}
+  /* 좌측 컬럼의 탭 높이 매칭용 invisible spacer — PER/PBR과 AI 지표 분석 카드 상단 정렬 */
+  .modal-tabs-spacer{visibility:hidden;display:flex;gap:2px;border-bottom:1px solid transparent;margin-bottom:14px;pointer-events:none}
+  .modal-tabs-spacer .modal-tab{cursor:default}
   .market-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);white-space:nowrap}
   .market-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
   .market-dot.open{background:#22c55e;animation:mpulse 1.5s ease-in-out infinite}
@@ -1104,17 +1105,14 @@ function openM(d){
   };
   document.getElementById('modal').innerHTML=`
     <button class="mclose" onclick="closeM()">×</button>
-    <div class="modal-header-row">
-      <div class="modal-title-row">
-        <h2>${d.name}</h2><span class="cat">${d.sector?`${d.sector} · ${d.industry}`:d.category}</span>${d.isHolding?'<span class="manual-badge" style="font-size:10px;padding:2px 6px" title="지주사">지주사</span>':''}<span class="grade g${d.grade}">${d.grade}등급</span>
-      </div>
-      <div class="modal-tabs">
-        <button type="button" class="modal-tab active" data-mtab="ai" onclick="switchModalTab('ai')"><i data-lucide="sparkles" class="lc"></i>AI 분석</button>
-        <button type="button" class="modal-tab" data-mtab="news" onclick="switchModalTab('news')"><i data-lucide="newspaper" class="lc"></i>관련 뉴스</button>
-      </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <h2>${d.name}</h2><span class="cat">${d.sector?`${d.sector} · ${d.industry}`:d.category}</span>${d.isHolding?'<span class="manual-badge" style="font-size:10px;padding:2px 6px" title="지주사">지주사</span>':''}<span class="grade g${d.grade}">${d.grade}등급</span>
     </div>
     <div class="modal-grid">
       <div class="modal-left">
+        <div class="modal-tabs-spacer" aria-hidden="true">
+          <button type="button" class="modal-tab" tabindex="-1"><i data-lucide="sparkles" class="lc"></i>AI 분석</button>
+        </div>
         <div class="metrics">
           <div class="metric"><div class="l">PER</div><div class="v">${mv('per')}</div></div>
           <div class="metric"><div class="l">PBR</div><div class="v">${mv('pbr')}</div></div>
@@ -1130,6 +1128,10 @@ function openM(d){
         ${d.flags&&d.flags.length?`<div style="color:var(--bad);font-size:12px;margin-top:8px">⚑ ${d.flags.join('<br>⚑ ')}</div>`:''}
       </div>
       <div class="modal-right">
+        <div class="modal-tabs">
+          <button type="button" class="modal-tab active" data-mtab="ai" onclick="switchModalTab('ai')"><i data-lucide="sparkles" class="lc"></i>AI 분석</button>
+          <button type="button" class="modal-tab" data-mtab="news" onclick="switchModalTab('news')"><i data-lucide="newspaper" class="lc"></i>관련 뉴스</button>
+        </div>
         <div class="modal-tab-content" data-mtab="ai">
           <div class="modal-rsec">
             <div class="modal-rsec-head">
