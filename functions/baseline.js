@@ -1,166 +1,113 @@
 /**
- * baseline.js — 시장·업종 기준선 (KRX 정보데이터시스템)
+ * baseline.js — 시장·업종 기준선 (KIS 직접 집계)
  * ------------------------------------------------------------------
- * 점수 공식·가중치는 그대로 두고, 상대비교의 "기준선"만 진짜 시장 수치로 교체.
+ * 결정 사항(2026-05-27): KRX 직접 호출은 GCP IP가 차단됨(LOGOUT).
+ * → KIS API로 이미 수집한 db.stocks의 지표를 업종별로 중앙값 집계.
  *
- * 소스: data.krx.co.kr getJsonData.cmd
- *   - MDCSTAT00701: 전 지수(시장·업종) PER/PBR/배당수익률(%)
- *     params: trdDd, idxIndMidclssCd (01=KOSPI, 02=KOSDAQ, 03=KRX 시리즈)
- *   - 응답: { output: [{ IDX_NM_KOR, CLSPRC_IDX, PER, PBR, DVD_YLD, ... }] }
+ * 장점:
+ *  - 추가 API 호출 0건 (이미 refresh 시점에 KIS로 받아 둔 값을 재사용)
+ *  - ROE도 함께 집계 가능 (KIS 응답에 있음 — KRX 지수에는 없었음)
  *
- * KRX 응답 단위:
- *   - PER, PBR: 배수 (예: 11.3)
- *   - DVD_YLD: 퍼센트 (예: 2.34)  ← 우리 stocks.divYield는 비율(0.0234)이라 비교 시 ×100 보정 필요
+ * 한계:
+ *  - 표본이 우리 시드 종목(주로 배당주)이라 진짜 KOSPI 평균이 아님 → 편향
+ *  - sampleSize, source 명시로 투명하게 표시
+ *  - 후속 단계로 KOSPI200 / KOSDAQ150 시드 확장 가능
  *
- * 주의: KRX 지수 fundamental에는 ROE 없음 → ROE는 기존 동종 분포 폴백.
- *
- * 캐시: appData/baseline 단일 문서. 매일 1회 수동/스케줄 갱신 권장.
+ * 집계 방식:
+ *  - 업종별(industry) ≥ 3개 → 업종 중앙값
+ *  - 시장(KOSPI) = 모든 유효 종목 중앙값
+ *  - PER/PBR/ROE는 KIS fetchMetrics 응답값 그대로
+ *  - divYield는 stocks.divYield(비율)를 ×100해서 % 단위로 통일
  */
 
-const KRX_URL = 'https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd';
+const { load } = require('./db');
 
-const KRX_HEADERS = {
-  'User-Agent':       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-  'Accept':           'application/json, text/javascript, */*; q=0.01',
-  'X-Requested-With': 'XMLHttpRequest',
-  'Referer':          'http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201010107',
-  'Content-Type':     'application/x-www-form-urlencoded; charset=UTF-8',
-};
-
-// 한국시간 기준 가장 최근 영업일 (보수적으로 어제부터 역산)
-function recentTradingDate() {
-  const kstNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
-  const d = new Date(kstNow);
-  d.setDate(d.getDate() - 1); // 오늘 데이터는 장 마감 후에야 채워지므로 어제부터
-  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1);
-  const yyyy = d.getFullYear();
-  const mm   = String(d.getMonth() + 1).padStart(2, '0');
-  const dd   = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}${mm}${dd}`;
+function _median(arr) {
+  if (!arr || arr.length === 0) return null;
+  const s = [...arr].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
-async function fetchIndexFundamentals(trdDd, midCls) {
-  const body = new URLSearchParams({
-    bld:              'dbms/MDC/STAT/standard/MDCSTAT00701',
-    trdDd,
-    idxIndMidclssCd:  midCls,
-    share:            '1',
-    money:            '1',
-    csvxls_isNo:      'false',
-  });
-  const res = await fetch(KRX_URL, {
-    method:  'POST',
-    headers: KRX_HEADERS,
-    body:    body.toString(),
-    signal:  AbortSignal.timeout(15000),
-  });
-  if (!res.ok) throw new Error(`KRX HTTP ${res.status} (midCls=${midCls})`);
-  const data = await res.json();
-  return Array.isArray(data?.output) ? data.output : [];
+function _today() {
+  const kst = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  return kst.toISOString().slice(0, 10).replace(/-/g, '');
 }
 
-function _num(s) {
-  const n = parseFloat(String(s ?? '').replace(/,/g, ''));
-  return Number.isFinite(n) && n !== 0 ? n : null;
-}
-
-function normalizeRow(r) {
+function _aggregate(items, label) {
+  const pers = items.map(s => s.per).filter(v => Number.isFinite(v) && v > 0);
+  const pbrs = items.map(s => s.pbr).filter(v => Number.isFinite(v) && v > 0);
+  const roes = items.map(s => s.roe).filter(v => Number.isFinite(v));
+  // divYield: 비율(0.05) → 퍼센트(5.0)로 통일
+  const divs = items
+    .map(s => s.divYield)
+    .filter(v => Number.isFinite(v) && v > 0)
+    .map(v => v * 100);
   return {
-    name:       String(r.IDX_NM_KOR || '').trim(),
-    per:        _num(r.PER),
-    pbr:        _num(r.PBR),
-    divYieldPc: _num(r.DVD_YLD),    // 퍼센트(예: 2.34)
-    close:      _num(r.CLSPRC_IDX),
+    name:       label,
+    per:        _median(pers),
+    pbr:        _median(pbrs),
+    roe:        _median(roes),
+    divYieldPc: _median(divs),
+    sampleSize: items.length,
+    valid: {
+      per: pers.length, pbr: pbrs.length, roe: roes.length, divYield: divs.length,
+    },
   };
 }
-
-/**
- * 우리 분류(GICS) → KRX 지수명 매핑.
- * KRX에 1:1 대응 지수가 있으면 사용, 없으면 null → 시장 평균(KOSPI)로 폴백.
- * 키는 우리 stocks의 industry 또는 sector 값과 정확히 일치해야 함.
- */
-const INDUSTRY_TO_KRX = {
-  // GICS 대분류
-  '금융':         '코스피 금융업',
-  '에너지':       null,                  // 단독 지수 없음
-  '산업재':       null,
-  '소재':         '코스피 화학',
-  '경기소비재':   null,
-  '필수소비재':   '코스피 음식료품',
-  '헬스케어':     '코스피 의약품',
-  '정보기술':     '코스피 전기전자',
-  '통신서비스':   '코스피 통신업',
-  '유틸리티':     '코스피 전기가스업',
-  '부동산':       null,
-  // industry 소분류 (우선)
-  '은행':         '코스피 은행',
-  '증권':         '코스피 증권',
-  '보험':         '코스피 보험',
-  '여신':         '코스피 금융업',
-  '금융서비스':   '코스피 금융업',
-  '인프라펀드':   null,
-  '부동산신탁':   null,
-  '복합기업':     null,
-};
 
 async function buildBaseline() {
-  const trdDd = recentTradingDate();
-  const [k1, k2, k3] = await Promise.all([
-    fetchIndexFundamentals(trdDd, '01').catch(e => { console.error('[baseline] KOSPI:', e.message); return []; }),
-    fetchIndexFundamentals(trdDd, '02').catch(e => { console.error('[baseline] KOSDAQ:', e.message); return []; }),
-    fetchIndexFundamentals(trdDd, '03').catch(e => { console.error('[baseline] KRX:', e.message); return []; }),
-  ]);
-  const all   = [...k1, ...k2, ...k3].map(normalizeRow).filter(r => r.name);
-  const byName = {};
-  for (const r of all) byName[r.name] = r;
-
-  if (all.length === 0) {
-    throw new Error('KRX 응답이 비어 있음 — 거래일 또는 접근 차단 확인');
+  // 공용 시드 stocks를 표본으로 사용 (이미 KIS로 갱신된 최신 지표 포함)
+  const db    = await load();
+  const stocks = (db.stocks || []).filter(s =>
+    Number.isFinite(s.per) && s.per > 0 &&
+    Number.isFinite(s.pbr) && s.pbr > 0
+  );
+  if (stocks.length === 0) {
+    throw new Error('appData/stocks 가 비었거나 PER/PBR이 모두 누락 — KIS refresh 먼저 필요');
   }
 
-  // 시장 평균
+  // 업종별 그룹 (industry 우선, 없으면 sector, 그것도 없으면 category)
+  const byGroup = {};
+  for (const s of stocks) {
+    const k = s.industry || s.sector || s.category;
+    if (!k) continue;
+    (byGroup[k] = byGroup[k] || []).push(s);
+  }
+  const industries = {};
+  for (const [grp, items] of Object.entries(byGroup)) {
+    if (items.length < 3) continue; // 표본 너무 작으면 제외
+    industries[grp] = _aggregate(items, grp);
+  }
+
   const market = {
-    kospi:  byName['코스피']  || null,
-    kosdaq: byName['코스닥']  || null,
+    kospi:  _aggregate(stocks, 'KOSPI 표본 평균'),
+    kosdaq: null, // 우리 시드는 KOSPI 중심
   };
 
-  // 업종 매핑
-  const industries = {};
-  for (const [ourKey, krxName] of Object.entries(INDUSTRY_TO_KRX)) {
-    if (krxName && byName[krxName]) {
-      industries[ourKey] = { ...byName[krxName], krxName };
-    }
-  }
-
   return {
-    asOf:       trdDd,
-    updatedAt:  new Date().toISOString(),
+    asOf:      _today(),
+    updatedAt: new Date().toISOString(),
     market,
     industries,
-    rawCount:   all.length,
-    source:     'KRX MDCSTAT00701',
+    rawCount:  stocks.length,
+    source:    'KIS aggregate (in-app stocks)',
+    note:      '시드 종목(주로 배당주) 기반 표본 평균 — 전체 시장 평균과는 편향이 있을 수 있음',
   };
 }
 
 /**
  * 종목 지표(value) vs 기준선 중앙값(median) → 0~100 점수.
  * higherBetter=true: 높을수록 좋음(ROE, divYield), false: 낮을수록 좋음(PER, PBR).
- * 중앙값과 같으면 50점, 절반/두 배에서 0/100 양 끝으로 수렴(클램프).
  */
 function relativeFromMedian(value, median, higherBetter) {
   if (value == null || median == null || !Number.isFinite(median) || median <= 0) return null;
   if (!Number.isFinite(value)) return null;
   const ratio = value / median;
-  const score = higherBetter
-    ? 50 + (ratio - 1) * 50
-    : 50 + (1 - ratio) * 50;
-  return Math.max(0, Math.min(100, score));
+  const raw   = higherBetter ? 50 + (ratio - 1) * 50 : 50 + (1 - ratio) * 50;
+  return Math.max(0, Math.min(100, raw));
 }
 
-/**
- * 종목의 매칭되는 기준선(업종 우선, 없으면 시장)을 돌려준다.
- * 시장 폴백 순서: industry → sector → KOSPI → KOSDAQ.
- */
 function pickBaseline(baseline, stock) {
   if (!baseline) return null;
   const ind = stock.industry || stock.category;
@@ -172,4 +119,4 @@ function pickBaseline(baseline, stock) {
       || null;
 }
 
-module.exports = { buildBaseline, relativeFromMedian, pickBaseline, INDUSTRY_TO_KRX };
+module.exports = { buildBaseline, relativeFromMedian, pickBaseline };

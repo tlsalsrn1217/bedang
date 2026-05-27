@@ -189,7 +189,9 @@ function scoreStocks(stocks, userConfig = {}, baseline = null) {
       const vPer = vPerRel ?? (per !== null && per > 0 ? percentileRank(per, pers, false) : 30);
       const value = cfg.valueMix.pbr * vPbr + cfg.valueMix.per * vPer;
 
-      const pRoe = percentileRank(roe, roes, true);
+      // ROE — baseline에 있으면 중앙값 상대점수, 없으면 분포 폴백
+      const pRoeRel = (base && base.roe != null) ? _relFromMedian(roe, base.roe, true) : null;
+      const pRoe = pRoeRel ?? percentileRank(roe, roes, true);
       const pRp = percentileRank(rpbr[idx], rpbr, true);
       const profit = cfg.profitMix.roe * pRoe + cfg.profitMix.roePerPbr * pRp;
 
@@ -244,10 +246,12 @@ function scoreStocks(stocks, userConfig = {}, baseline = null) {
         },
         // 기준선 메타(있으면) — UI 병기용
         baseline: base ? {
-          name:       base.krxName || base.name || null,
+          name:       base.name || null,
           per:        base.per ?? null,
           pbr:        base.pbr ?? null,
+          roe:        base.roe ?? null,
           divYieldPc: base.divYieldPc ?? null,
+          sampleSize: base.sampleSize ?? null,
         } : null,
       });
     });
