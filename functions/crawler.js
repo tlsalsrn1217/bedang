@@ -110,7 +110,10 @@ async function fetchMetrics(code) {
     per:  num(o.per),
     pbr:  num(o.pbr),
     roe,
-    mcap: num(o.hts_avls), // 억원 단위
+    mcap: num(o.hts_avls),
+    prdy_vrss:      parseFloat(o.prdy_vrss  || '0') || 0,  // 전일 대비 (원)
+    prdy_vrss_sign: o.prdy_vrss_sign || '3',                // 1:상한 2:상승 3:보합 4:하한 5:하락
+    prdy_ctrt:      parseFloat(o.prdy_ctrt  || '0') || 0,  // 등락률 (%)
     crawledAt: new Date().toISOString(),
   };
 
@@ -142,4 +145,111 @@ function clearCache() {
   cache.clear();
 }
 
-module.exports = { fetchMetrics, fetchMany, clearCache };
+// ── 기간별 주가 차트 데이터 수집 ─────────────────────────────────────
+// periodCode: D(일) / W(주) / M(월) / Y(연)
+// from/to: 'YYYYMMDD' 문자열
+async function fetchChartPage(code, periodCode, from, to) {
+  const token = await getToken();
+  const key   = process.env.KIS_APP_KEY;
+  const sec   = process.env.KIS_APP_SECRET;
+
+  const url = new URL(`${BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice`);
+  url.searchParams.set('FID_COND_MRKT_DIV_CODE', 'J');
+  url.searchParams.set('FID_INPUT_ISCD',         code);
+  url.searchParams.set('FID_INPUT_DATE_1',        from);
+  url.searchParams.set('FID_INPUT_DATE_2',        to);
+  url.searchParams.set('FID_PERIOD_DIV_CODE',     periodCode);
+  url.searchParams.set('FID_ORG_ADJ_PRC',         '0'); // 수정주가
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      authorization: `Bearer ${token}`,
+      appkey:   key,
+      appsecret: sec,
+      tr_id:    'FHKST03010100',
+      custtype: 'P',
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) throw new Error(`KIS chart ${code} HTTP ${res.status}`);
+  const json = await res.json();
+  if (json.rt_cd !== '0') throw new Error(`KIS chart ${code}: ${json.msg1}`);
+
+  // output2 = 기간별 배열 (날짜 내림차순)
+  return (json.output2 || []).map(r => ({
+    date:  r.stck_bsop_date, // 'YYYYMMDD'
+    close: parseFloat(r.stck_clpr) || 0,
+    open:  parseFloat(r.stck_oprc) || 0,
+    high:  parseFloat(r.stck_hgpr) || 0,
+    low:   parseFloat(r.stck_lwpr) || 0,
+  })).filter(r => r.close > 0);
+}
+
+// 긴 기간 페이징: dateRange를 chunkMonths 단위로 분할해 이어붙임
+function splitDateRange(fromDate, toDate, chunkMonths) {
+  const chunks = [];
+  let cursor = new Date(toDate);
+  const end  = new Date(toDate);
+  const start = new Date(fromDate);
+  while (cursor > start) {
+    const chunkFrom = new Date(cursor);
+    chunkFrom.setMonth(chunkFrom.getMonth() - chunkMonths);
+    if (chunkFrom < start) chunkFrom.setTime(start.getTime());
+    chunks.push({
+      from: chunkFrom.toISOString().slice(0,10).replace(/-/g,''),
+      to:   cursor.toISOString().slice(0,10).replace(/-/g,''),
+    });
+    cursor = new Date(chunkFrom);
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return chunks;
+}
+
+async function fetchChart(code, preset) {
+  // preset: '1D' | '1W' | '1M' | '1Y' | '5Y' | 'ALL'
+  const today = new Date();
+  const fmt   = d => d.toISOString().slice(0,10).replace(/-/g,'');
+  const ago   = (years=0, months=0, days=0) => {
+    const d = new Date(today);
+    d.setFullYear(d.getFullYear() - years);
+    d.setMonth(d.getMonth() - months);
+    d.setDate(d.getDate() - days);
+    return d;
+  };
+
+  // 프리셋별 설정
+  const cfg = {
+    '3M': { period: 'D', from: ago(0,3),  chunkM: null },  // 일봉 3개월 (~63건)
+    '1Y': { period: 'W', from: ago(1),    chunkM: null },  // 주봉 1년 (~52건)
+    '3Y': { period: 'M', from: ago(3),    chunkM: null },  // 월봉 3년 (~36건)
+    '5Y': { period: 'M', from: ago(5),    chunkM: null },  // 월봉 5년 (~60건)
+    '10Y':{ period: 'M', from: ago(10),   chunkM: 60   },  // 월봉 10년 → 2페이지
+    'ALL':{ period: 'Y', from: ago(30),   chunkM: null },  // 연봉 30년 (~30건)
+  }[preset] || { period: 'D', from: ago(0,3), chunkM: null };
+
+  const fromStr = fmt(cfg.from);
+  const toStr   = fmt(today);
+
+  let rows = [];
+  if (!cfg.chunkM) {
+    // 단일 호출
+    rows = await fetchChartPage(code, cfg.period, fromStr, toStr);
+  } else {
+    // 페이징: 날짜 구간 분할
+    const chunks = splitDateRange(fromStr, toStr, cfg.chunkM);
+    for (const chunk of chunks) {
+      await sleep(200); // KIS 호출 간격
+      const part = await fetchChartPage(code, cfg.period, chunk.from, chunk.to);
+      rows = rows.concat(part);
+    }
+    // 중복 제거 + 오름차순 정렬
+    const seen = new Set();
+    rows = rows.filter(r => seen.has(r.date) ? false : seen.add(r.date));
+  }
+
+  // 오름차순(과거→최근) 정렬
+  rows.sort((a,b) => a.date.localeCompare(b.date));
+  return rows;
+}
+
+module.exports = { fetchMetrics, fetchMany, clearCache, fetchChart };

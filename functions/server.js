@@ -8,7 +8,7 @@ const cors    = require('cors');
 const crypto  = require('crypto');
 const { getFirestore } = require('firebase-admin/firestore');
 const { scoreStocks, DEFAULT_CONFIG } = require('./scoring');
-const { fetchMetrics, fetchMany, clearCache } = require('./crawler');
+const { fetchMetrics, fetchMany, clearCache, fetchChart } = require('./crawler');
 const { explainStock, parseExplainRaw, recommendConfig, classifyAndCheck, classifyNewsImpact } = require('./llm');
 const { analyzeQualitative } = require('./qualitative');
 const { searchNews } = require('./news');
@@ -303,7 +303,8 @@ function mergeKIS(s, f) {
   const newPrice    = f.price;
   const newDivYield = (s.prevDps && newPrice && newPrice > 0) ? s.prevDps / newPrice : s.divYield;
   return { ...s, price: newPrice, per: f.per ?? s.per, pbr: f.pbr ?? s.pbr,
-    roe: f.roe ?? s.roe, mcap: f.mcap ?? s.mcap, divYield: newDivYield };
+    roe: f.roe ?? s.roe, mcap: f.mcap ?? s.mcap, divYield: newDivYield,
+    prdy_vrss: f.prdy_vrss ?? 0, prdy_vrss_sign: f.prdy_vrss_sign ?? '3', prdy_ctrt: f.prdy_ctrt ?? 0 };
 }
 
 app.post('/api/refresh', wrap(async (req, res) => {
@@ -352,6 +353,35 @@ app.post('/api/explain/:code', wrap(async (req, res) => {
     res.json({ explanation: result, at });
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
+  }
+}));
+
+// ── 주가 차트 (기간별 시세) ───────────────────────────────────────
+// 당일 캐시: chartCache[code][preset] = { data, fetchedAt }
+const chartCache = {};
+const CHART_CACHE_TTL = 1000 * 60 * 60 * 6; // 6시간
+
+app.get('/api/chart/:code', wrap(async (req, res) => {
+  const code   = decodeURIComponent(req.params.code);
+  const preset = (req.query.preset || '1D').toUpperCase();
+  const VALID  = new Set(['3M','1Y','3Y','5Y','10Y','ALL']);
+  if (!VALID.has(preset)) return res.status(400).json({ error: '유효하지 않은 preset' });
+  if (!code) return res.status(400).json({ error: '종목코드 필요' });
+
+  // 캐시 확인
+  const cached = chartCache[code]?.[preset];
+  if (cached && Date.now() - cached.fetchedAt < CHART_CACHE_TTL) {
+    return res.json({ data: cached.data, cached: true });
+  }
+
+  try {
+    const data = await fetchChart(code, preset);
+    if (!chartCache[code]) chartCache[code] = {};
+    chartCache[code][preset] = { data, fetchedAt: Date.now() };
+    res.json({ data, cached: false });
+  } catch (e) {
+    console.error('[chart]', e.message);
+    res.status(500).json({ error: e.message });
   }
 }));
 
