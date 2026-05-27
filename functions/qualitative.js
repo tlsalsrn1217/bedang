@@ -41,41 +41,46 @@ const VALID_TAGS = new Set([
 function buildQualitativePrompt(stock) {
   const today = new Date().toISOString().slice(0, 10);
   const ind   = stock.industry || stock.sector || stock.category;
-  return `당신은 한국 주식 시장 정성 분석가입니다. 오늘(${today}) Google 검색으로 최근 6개월 이내의 구체적 뉴스·공시를 조사한 뒤, 정량 점수가 놓칠 수 있는 맥락만 별도 레이어로 분석하세요. 정량 점수 자체를 평가하거나 수정하려 하지 마세요.
+  const codeStr = stock.code ? `(종목코드 ${stock.code})` : '';
+  return `당신은 한국 주식 시장 정성 분석가입니다. 오늘(${today}) Google 검색으로 최근 6개월 이내의 구체적 뉴스·공시를 조사한 뒤, 정량 점수가 놓칠 수 있는 맥락만 별도 레이어로 분석합니다.
 
-[종목] ${stock.name} (${stock.category} / ${ind})
-[정량 점수] ${stock.score}/100 — 이 점수는 이미 결정되었습니다. 당신은 점수가 놓친 맥락만 본다.
+[종목] ${stock.name} ${codeStr} (${stock.category} / ${ind})
+[정량 점수] ${stock.score}/100 — 이미 결정된 값. 평가·수정 금지.
 [밸류 세부] ${stock.breakdown?.value ?? '-'} (낮을수록 동종 대비 비쌈)
 [시장지표] PER ${stock.per} · PBR ${stock.pbr} · ROE ${stock.roe}%
 
 [분석 절차]
-1. ${stock.name}에 대한 최근 6개월 이내 한국어 뉴스/공시를 Google 검색으로 조사.
-2. 구체적 사실(뉴스 제목·출처·날짜)이 존재하는 경우에만 premiumTag를 부여.
-3. 구체적 근거가 없으면 반드시 premiumTag="none". 일반론·추측만으로 태그 부여 금지.
+1. "${stock.name}" ${codeStr ? '및 종목코드 ' + stock.code : ''}로 최근 6개월 한국어 뉴스/공시 검색.
+2. 검색 결과 정보가 부족하더라도 반드시 유효한 JSON 객체를 반환하세요. 정보 부족 시 premiumTag="none", contextNote에는 "정량 지표 외 특이 맥락이 검색되지 않음" 류로 기재.
+3. 구체적 뉴스/공시 근거가 있을 때만 premiumTag를 none 외 값으로.
 
 [태그 정의]
-- growth_expectation: 비상장 자산(자회사 지분 등)·신사업·구조적 성장 기대가 현재 PER/PBR에 미반영. 시장이 선반영 중일 수 있음.
-- simple_overvalued: 비싸지만 뚜렷한 미래 호재 뉴스 없음. 점수대로 신중.
-- temp_profit_dip: 이익이 일시적으로 급감해 PER이 왜곡됨. 회복 가능성을 시사하는 구체적 사실 존재.
-- hidden_asset: 본업 외 보유 자산(부동산·지분) 가치가 큼. 자산 저평가가 점수에 가려짐.
-- none: 정량 외 특이 맥락이 검색되지 않음.
+- growth_expectation: 비상장 자산·신사업·구조적 성장 기대가 현재 PER/PBR에 미반영.
+- simple_overvalued: 비싸지만 뚜렷한 미래 호재 뉴스 없음.
+- temp_profit_dip: 이익 일시 급감으로 PER 왜곡, 회복 시사 사실 존재.
+- hidden_asset: 본업 외 보유 자산이 크고 자산가치가 점수에 가려짐.
+- none: 정량 외 특이 맥락 없음.
 
-[표현 규칙 — 위반 시 분석은 폐기됩니다]
-- 단정 표현 금지: "반드시 오른다", "확실히", "지금이 기회", "보장", "무조건" 사용 시 폐기.
-- 추측형만 허용: "~로 기대됨", "~가능성이 거론됨", "시장은 ~로 보는 것으로 풀이됨".
-- 태그를 부여하면 risks 필드에 반드시 반대 시나리오(태그가 무산될 경우)를 작성.
-- 사실 없이 일반론·감(感) 금지. 모든 진술은 sources의 구체적 뉴스/공시에 근거.
+[표현 규칙]
+- 단정 표현("반드시 오른다", "확실히", "지금이 기회", "보장", "무조건") 사용 시 분석 폐기.
+- 추측형만 허용: "~로 기대됨", "~가능성이 거론됨".
+- 태그 부여 시 risks에 반드시 반대 시나리오.
 
-[출력 — 순수 JSON. 마크다운 기호(#, *, -, \`) 금지]
+[★ 출력 형식 — 절대 규칙]
+- 응답의 첫 문자는 반드시 "{" 입니다.
+- 응답의 마지막 문자는 반드시 "}" 입니다.
+- JSON 앞뒤에 인사말·요약·머리말·코드펜스(\`\`\`)·설명 절대 금지.
+- 마크다운 기호(#, *, -, \`, >) 금지.
+- 모든 문자열은 큰따옴표로 감쌉니다.
+
+[JSON 스키마]
 {
-  "contextNote": "정량 점수가 놓친 맥락 1~2문장(추측형). 'none'이면 '정량 지표 외 특이 맥락이 최근 6개월 내 검색되지 않음.'",
+  "contextNote": "맥락 1~2문장(추측형). 정보 부족 시 '정량 지표 외 특이 맥락이 최근 6개월 내 검색되지 않음.'",
   "premiumTag": "growth_expectation | simple_overvalued | temp_profit_dip | hidden_asset | none",
-  "tagReason": "태그의 구체적 근거 사실(어떤 뉴스/공시 — 날짜·핵심 내용). none이면 빈 문자열.",
-  "risks": "맥락이 무산될 시나리오(태그 부여 시 필수). none이면 빈 문자열.",
+  "tagReason": "태그 근거 사실(날짜·핵심). none이면 빈 문자열.",
+  "risks": "반대 시나리오. none이면 빈 문자열.",
   "disclaimer": "${DEFAULT_DISCLAIMER}",
-  "sources": [
-    {"title": "기사/공시 제목", "url": "https://...", "date": "YYYY-MM-DD"}
-  ],
+  "sources": [{"title": "기사/공시 제목", "url": "https://...", "date": "YYYY-MM-DD"}],
   "asOf": "${today}"
 }`;
 }
@@ -87,25 +92,25 @@ async function callGeminiGrounded(prompt, apiKey) {
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     tools:    [{ googleSearch: {} }],
-    generationConfig: { temperature: 0.3, maxOutputTokens: 4000 },
+    generationConfig: { temperature: 0.3, maxOutputTokens: 8000 },
   };
   const res = await fetch(url, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify(body),
-    signal:  AbortSignal.timeout(30000),
+    signal:  AbortSignal.timeout(35000),
   });
   if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${await res.text()}`);
   const data = await res.json();
   const cand = data?.candidates?.[0];
   const text = cand?.content?.parts?.map(p => p.text).filter(Boolean).join('') || '';
-  // 그라운딩 메타: 실제 기사 제목 + (Vertex redirect) URI 페어
+  const finishReason = cand?.finishReason || '';
   const chunks = cand?.groundingMetadata?.groundingChunks || [];
   const groundingSources = chunks
     .filter(c => c && c.web)
     .map(c => ({ title: (c.web.title || '').trim(), url: c.web.uri || '' }))
     .filter(s => s.url && s.title);
-  return { text, groundingSources };
+  return { text, groundingSources, finishReason };
 }
 
 /**
@@ -179,15 +184,27 @@ function applyGuards(parsed) {
 }
 
 async function analyzeQualitative(stock, apiKey) {
-  const { text, groundingSources } = await callGeminiGrounded(buildQualitativePrompt(stock), apiKey);
+  const { text, groundingSources, finishReason } = await callGeminiGrounded(buildQualitativePrompt(stock), apiKey);
   const parsed = parseQualRaw(text);
 
-  // 파싱 실패 시 — 그라운딩 출처라도 보여주며 재시도 안내
+  // 파싱 실패 시 — 진단 로깅 후, 그라운딩 출처가 있으면 그것으로 degraded 결과 구성
   if (!parsed || typeof parsed !== 'object') {
+    console.error('[qualitative] parse failed', {
+      stock:           stock.name,
+      finishReason,
+      textLen:         text.length,
+      textHead:        text.slice(0, 300),
+      groundingCount:  groundingSources.length,
+    });
+    const note = finishReason === 'MAX_TOKENS'
+      ? '응답이 길어 잘렸습니다 (토큰 한도). ↻ 재분석하면 다시 시도합니다.'
+      : groundingSources.length > 0
+        ? '관련 뉴스는 찾았으나 구조화된 분석을 생성하지 못했습니다. 아래 출처를 직접 참고하세요.'
+        : `"${stock.name}"에 대한 최근 6개월 한국어 뉴스/공시 정보가 부족해 정성 분석이 어렵습니다.`;
     return applyGuards({
-      contextNote: '응답이 예상 형식과 달라 분석을 파싱하지 못했습니다. ↻ 재분석을 한 번 더 눌러보세요.',
-      premiumTag: 'none',
-      sources:    groundingSources.slice(0, 5).map(g => ({ title: g.title, url: g.url, date: '' })),
+      contextNote: note,
+      premiumTag:  'none',
+      sources:     groundingSources.slice(0, 5).map(g => ({ title: g.title, url: g.url, date: '' })),
     });
   }
 
