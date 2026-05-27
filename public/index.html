@@ -106,6 +106,21 @@
   .news-via{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-right:4px;vertical-align:middle;line-height:1.6}
   .news-via.naver{background:#03c75a22;color:#03c75a}
   .news-via.google{background:#4285f422;color:#4285f4}
+  /* 정성 분석 카드 (점수와 분리된 별도 레이어) */
+  .qual-tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:6px 12px;border-radius:8px;margin-bottom:10px;letter-spacing:-.01em}
+  .qual-tag.growth{background:rgba(49,130,246,.12);color:var(--accent-soft);border:1px solid rgba(49,130,246,.3)}
+  .qual-tag.overvalued{background:rgba(229,83,75,.10);color:var(--bad);border:1px solid rgba(229,83,75,.25)}
+  .qual-tag.dip{background:rgba(216,168,56,.12);color:var(--warn);border:1px solid rgba(216,168,56,.3)}
+  .qual-tag.hidden{background:rgba(124,136,150,.12);color:var(--soft);border:1px solid rgba(124,136,150,.3)}
+  .qual-section{margin:8px 0;font-size:13px;color:var(--soft);line-height:1.7}
+  .qual-section .lbl{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:4px;background:var(--paper);color:var(--dim);margin-right:6px;vertical-align:middle}
+  .qual-risks{background:rgba(229,83,75,.06);border-left:2px solid var(--bad);padding:8px 12px;border-radius:4px;margin-top:8px;font-size:12px;color:var(--soft);line-height:1.65}
+  .qual-disclaimer{background:rgba(216,168,56,.08);border:1px solid rgba(216,168,56,.25);border-radius:8px;padding:9px 12px;margin-top:10px;font-size:11px;color:var(--warn);line-height:1.55}
+  .qual-sources{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .qual-source{display:inline-flex;align-items:center;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:3px 9px;font-size:11px;color:var(--soft);text-decoration:none;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qual-source:hover{border-color:var(--accent);color:var(--accent-soft)}
+  .qual-none{color:var(--dim);font-size:12px;line-height:1.6}
+  .qual-meta{font-size:10px;color:var(--dim);margin-bottom:6px}
   .market-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);white-space:nowrap}
   .market-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
   .market-dot.open{background:#22c55e;animation:mpulse 1.5s ease-in-out infinite}
@@ -1104,6 +1119,13 @@ function openM(d){
         </div>
         <div class="modal-rsec">
           <div class="modal-rsec-head">
+            <h4>기대 프리미엄 · 맥락 <span style="font-size:10px;font-weight:600;color:var(--dim);margin-left:6px">점수와 별도 레이어</span></h4>
+            <button class="genbtn" id="qualBtn" onclick="genQual('${esc(d.name)}',this)">✦ 정성 분석</button>
+          </div>
+          <div class="explain" id="qualBox"><span style="color:var(--dim);font-size:13px">정량 점수가 놓친 미래 기대·시장 이슈를 Gemini가 최근 6개월 뉴스에서 조사합니다. 점수에는 반영되지 않습니다.</span></div>
+        </div>
+        <div class="modal-rsec">
+          <div class="modal-rsec-head">
             <h4>관련 뉴스</h4>
             <button class="newsbtn" id="newsBtn" onclick="fetchNews('${esc(d.name)}',this)">뉴스 불러오기</button>
           </div>
@@ -1113,6 +1135,7 @@ function openM(d){
     </div>`;
   document.getElementById('ov').classList.add('on');
   loadCachedExplain(d.name);
+  loadCachedQual(d.name);
 }
 function closeM(){document.getElementById('ov').classList.remove('on');}
 async function fetchNews(name,btn){
@@ -1165,6 +1188,70 @@ function renderExplainBox(ex, at){
     ].join('');
   }
   if(btn)btn.textContent='↻ 재생성 (토큰 소모)';
+}
+// ── 정성 분석 (점수와 분리된 별도 레이어) ──
+function _qualTagMeta(t){
+  return ({
+    growth_expectation: ['🚀 성장 기대형','growth','비싸지만 미래 기대가 정량 지표에 미반영'],
+    simple_overvalued:  ['⚠️ 단순 고평가','overvalued','뚜렷한 미래 호재 없이 비쌈'],
+    temp_profit_dip:    ['📉 이익 일시 급감','dip','이익이 일시적으로 작아 PER 왜곡'],
+    hidden_asset:       ['🔄 자산 저평가 가림','hidden','보유 자산이 본업 대비 큼'],
+  })[t]||null;
+}
+function renderQualBox(q,at){
+  const box=document.getElementById('qualBox');
+  const btn=document.getElementById('qualBtn');
+  if(!box||!q)return;
+  const strip=s=>(s||'').replace(/[#*`>~_[\]]/g,'').trim();
+  const dateStr=at?new Date(at).toLocaleDateString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+  const metaHtml=dateStr?`<div class="qual-meta">분석 ${dateStr}${q.asOf?' · 조사 기준 '+q.asOf:''}</div>`:'';
+  const tag=_qualTagMeta(q.premiumTag);
+  const tagHtml=tag?`<div class="qual-tag ${tag[1]}" title="${tag[2]}">${tag[0]}</div>`:'';
+  const ctx=strip(q.contextNote);
+  const ctxHtml=ctx?(tag?
+    `<div class="qual-section"><span class="lbl">맥락</span>${ctx}</div>`:
+    `<div class="qual-none">${ctx}</div>`):'';
+  const reason=strip(q.tagReason);
+  const reasonHtml=reason?`<div class="qual-section"><span class="lbl">근거</span>${reason}</div>`:'';
+  const risks=strip(q.risks);
+  const risksHtml=risks?`<div class="qual-risks"><b>반대 시나리오 — </b>${risks}</div>`:'';
+  const srcs=(q.sources||[]).filter(s=>s&&s.url&&s.title);
+  const srcHtml=srcs.length?`<div class="qual-sources">${srcs.map(s=>{
+    let dom='';try{dom=new URL(s.url).hostname.replace(/^www\./,'');}catch(_){}
+    const label=dom||strip(s.title).slice(0,28);
+    return `<a class="qual-source" href="${s.url}" target="_blank" rel="noopener noreferrer" title="${strip(s.title)}">${label}</a>`;
+  }).join('')}</div>`:'';
+  const disc=strip(q.disclaimer)||'이는 시장 기대이며 실현을 보장하지 않습니다. 기대가 이미 주가에 반영되어 있을 수 있습니다.';
+  const discHtml=`<div class="qual-disclaimer">⚠ ${disc}</div>`;
+  box.innerHTML=metaHtml+tagHtml+ctxHtml+reasonHtml+risksHtml+srcHtml+discHtml;
+  if(btn)btn.textContent='↻ 재분석 (토큰 소모)';
+}
+async function loadCachedQual(name){
+  if(location.protocol==='file:')return;
+  try{
+    const r=await apiFetch('/api/qualitative/'+encodeURIComponent(name));
+    if(!r.ok)return;
+    const j=await r.json();
+    if(j.qualitative)renderQualBox(j.qualitative,j.at);
+  }catch(e){}
+}
+async function genQual(name,btn){
+  if(location.protocol==='file:'){
+    document.getElementById('qualBox').textContent='백엔드 연결 시 사용 가능합니다.';return;
+  }
+  btn.disabled=true;btn.textContent='분석 중…';
+  const box=document.getElementById('qualBox');
+  box.innerHTML='<div style="color:var(--dim);font-size:13px">최근 6개월 뉴스·공시를 조사하는 중입니다<span class="stream-cursor"></span></div>';
+  try{
+    const r=await apiFetch('/api/qualitative/'+encodeURIComponent(name),{method:'POST'});
+    const j=await r.json();
+    if(j.error){box.innerHTML=`<span style="color:var(--bad)">${j.error}</span>`;}
+    else if(j.qualitative){renderQualBox(j.qualitative,j.at);}
+    else{box.innerHTML='<span style="color:var(--dim);font-size:13px">분석 결과를 받지 못했습니다.</span>';}
+  }catch(e){
+    box.innerHTML='<span style="color:var(--bad)">⚠ 정성 분석 중 오류. 다시 시도해 주세요.</span>';
+  }
+  btn.disabled=false;btn.textContent='↻ 재분석 (토큰 소모)';
 }
 async function loadCachedExplain(name){
   if(location.protocol==='file:')return;

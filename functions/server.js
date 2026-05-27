@@ -10,7 +10,8 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { scoreStocks, DEFAULT_CONFIG } = require('./scoring');
 const { fetchMetrics, fetchMany, clearCache } = require('./crawler');
 const { explainStock, parseExplainRaw, recommendConfig, classifyAndCheck } = require('./llm');
-const { load, save } = require('./db');
+const { analyzeQualitative } = require('./qualitative');
+const { load, save, loadQualitative, saveQualitative } = require('./db');
 
 // ── JWT 유틸 (외부 패키지 없이 순수 crypto) ──────────────────────
 
@@ -300,6 +301,36 @@ app.post('/api/explain/:code', wrap(async (req, res) => {
     const at     = new Date().toISOString();
     await save({ explanations: { [stock.name]: { result, at, score: stock.score } } }, uid);
     res.json({ explanation: result, at });
+  } catch (e) {
+    res.status(500).json({ error: String(e.message || e) });
+  }
+}));
+
+// ── 정성 분석 레이어 (점수와 분리, 모달에서만 사용) ─────────────
+app.get('/api/qualitative/:code', wrap(async (req, res) => {
+  const uid    = getUid(req);
+  const db     = await load(uid);
+  const key    = decodeURIComponent(req.params.code);
+  const stock  = db.stocks.find(s => s.code === key || s.name === key);
+  if (!stock) return res.json({ qualitative: null, at: null });
+  const cached = await loadQualitative(uid, stock.name);
+  if (!cached) return res.json({ qualitative: null, at: null });
+  res.json({ qualitative: cached.result, at: cached.at, score: cached.score });
+}));
+
+app.post('/api/qualitative/:code', wrap(async (req, res) => {
+  const uid = getUid(req);
+  if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
+  const db     = await load(uid);
+  const key    = decodeURIComponent(req.params.code);
+  const scored = scoreStocks(db.stocks, db.settings);
+  const stock  = scored.find(s => s.code === key || s.name === key);
+  if (!stock) return res.status(404).json({ error: '종목 없음' });
+  try {
+    const result = await analyzeQualitative(stock);
+    const at     = new Date().toISOString();
+    await saveQualitative(uid, stock.name, { result, at, score: stock.score });
+    res.json({ qualitative: result, at });
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
   }

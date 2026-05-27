@@ -13,6 +13,9 @@ function docPath(uid, key) {
 function explColl(uid) {
   return uid ? `userData/${uid}/explanations` : 'explanations';
 }
+function qualColl(uid) {
+  return uid ? `userData/${uid}/qualitative` : 'qualitative';
+}
 
 // undefined 제거 (Firestore는 undefined 불허)
 function clean(val) {
@@ -76,4 +79,16 @@ async function save(data, uid = null) {
   }
 }
 
-module.exports = { load, save };
+// ── 정성 분석 레이어 단건 I/O (점수 파이프라인과 무관, 모달 진입 시에만 호출) ──
+async function loadQualitative(uid, stockName) {
+  const db   = getFirestore();
+  const snap = await db.doc(`${qualColl(uid)}/${stockName}`).get();
+  return snap.exists ? snap.data() : null;
+}
+
+async function saveQualitative(uid, stockName, data) {
+  const db = getFirestore();
+  await db.doc(`${qualColl(uid)}/${stockName}`).set(clean(data));
+}
+
+module.exports = { load, save, loadQualitative, saveQualitative };
