@@ -1708,23 +1708,28 @@ async function tryConnectBackend(){
       apiFetch('/api/stocks'),apiFetch('/api/settings'),apiFetch('/api/holdings')
     ]);
     if(!sR.ok||!cfgR.ok)return;
-    const {stocks, lastRefresh, marketOpen}=await sR.json();
-    const settings=await cfgR.json();
-    const {holdings}=hR.ok?await hR.json():{holdings:[]};
-    if(stocks&&stocks.length){DATA=stocks;renderTabs();renderRows();}
-    updateMarketStatus(marketOpen, lastRefresh);
-    if(settings.weights)CONFIG.weights={...CONFIG.weights,...settings.weights};
-    if(settings.sectorMultipliers)CONFIG.sectorMultipliers={...CONFIG.sectorMultipliers,...settings.sectorMultipliers};
-    if(holdings&&holdings.length){
-      myPortfolio=holdings.map(h=>{
-        const d=DATA.find(x=>x.name===h.name)||{};
-        return{name:h.name,price:d.price??h.price,divYield:d.divYield??h.divYield,avgYield:d.avgYield??h.avgYield,score:d.score??h.score,category:d.category??h.category,sector:d.sector??h.sector,industry:d.industry??h.industry,lots:h.lots||[]};
-      });
-      renderPortfolio();renderHoldings();
-    }
+    // API 응답 확인 즉시 연결 상태로 표시 (렌더링 오류가 있어도 연결됨)
     _backendReady=true;
     setInterval(refreshDataSilent, 30 * 1000);
-    console.log('[배당주] 백엔드 연결 완료 — 30초 자동폴링 시작');
+    try{
+      const {stocks, lastRefresh, marketOpen}=await sR.json();
+      const settings=await cfgR.json();
+      const {holdings}=hR.ok?await hR.json():{holdings:[]};
+      if(stocks&&stocks.length){DATA=stocks;renderTabs();renderRows();}
+      updateMarketStatus(marketOpen, lastRefresh);
+      if(settings.weights)CONFIG.weights={...CONFIG.weights,...settings.weights};
+      if(settings.sectorMultipliers)CONFIG.sectorMultipliers={...CONFIG.sectorMultipliers,...settings.sectorMultipliers};
+      if(holdings&&holdings.length){
+        myPortfolio=holdings.map(h=>{
+          const d=DATA.find(x=>x.name===h.name)||{};
+          return{name:h.name,price:d.price??h.price,divYield:d.divYield??h.divYield,avgYield:d.avgYield??h.avgYield,score:d.score??h.score,category:d.category??h.category,sector:d.sector??h.sector,industry:d.industry??h.industry,lots:h.lots||[]};
+        });
+        renderPortfolio();renderHoldings();
+      }
+      console.log('[배당주] 백엔드 연결 완료 — 30초 자동폴링 시작');
+    }catch(e){
+      console.error('[배당주] 데이터 로딩 오류:', e);
+    }
   }catch(e){
     console.error('[배당주] tryConnectBackend 에러:', e);
   }
