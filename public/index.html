@@ -1195,8 +1195,18 @@ async function genExplain(name,btn){
 function updateMarketStatus(open, lastRefresh) {
   const el = document.getElementById('marketStatus');
   if (!el) return;
-  const time = lastRefresh ? new Date(lastRefresh).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) : '-';
-  el.innerHTML = `<span class="market-dot ${open?'open':'closed'}"></span>${open?'장중':'장외'} · ${time}`;
+  let refreshStr;
+  if (!lastRefresh) {
+    refreshStr = '<span style="color:var(--warn);font-size:11px">미업데이트</span>';
+  } else {
+    const d = new Date(lastRefresh);
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const timeStr = d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+    const dateStr = isToday ? '' : (d.getMonth()+1)+'/'+(d.getDate())+' ';
+    refreshStr = `기준 ${dateStr}${timeStr}`;
+  }
+  el.innerHTML = `<span class="market-dot ${open?'open':'closed'}"></span>${open?'장중':'장외'} · ${refreshStr}`;
 }
 
 async function refreshDataSilent() {
@@ -1701,16 +1711,20 @@ fullRecalc();renderTabs();renderRows();calc();
 let _backendReady=false;
 let _saveSettingsTimer=null;
 
-async function tryConnectBackend(){
+async function tryConnectBackend(attempt){
   if(location.protocol==='file:')return;
+  attempt=attempt||0;
   try{
     const [sR,cfgR,hR]=await Promise.all([
       apiFetch('/api/stocks'),apiFetch('/api/settings'),apiFetch('/api/holdings')
     ]);
+    // 502/503 cold-start: 최대 4회 재시도 (2s, 4s, 6s, 8s 간격)
+    if((sR.status===502||sR.status===503)&&attempt<4){
+      return setTimeout(()=>tryConnectBackend(attempt+1), 2000*(attempt+1));
+    }
     if(!sR.ok||!cfgR.ok)return;
-    // API 응답 확인 즉시 연결 상태로 표시 (렌더링 오류가 있어도 연결됨)
     _backendReady=true;
-    setInterval(refreshDataSilent, 30 * 1000);
+    setInterval(refreshDataSilent, 30*1000);
     try{
       const {stocks, lastRefresh, marketOpen}=await sR.json();
       const settings=await cfgR.json();
@@ -1726,11 +1740,12 @@ async function tryConnectBackend(){
         });
         renderPortfolio();renderHoldings();
       }
-      console.log('[배당주] 백엔드 연결 완료 — 30초 자동폴링 시작');
+      console.log('[배당주] 백엔드 연결 완료');
     }catch(e){
       console.error('[배당주] 데이터 로딩 오류:', e);
     }
   }catch(e){
+    if(attempt<4) return setTimeout(()=>tryConnectBackend(attempt+1), 2000*(attempt+1));
     console.error('[배당주] tryConnectBackend 에러:', e);
   }
 }

@@ -96,10 +96,7 @@ const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// Cold start 초기화 — appData(공용) 시드
-let initialized = false;
-let initPromise  = null;
-
+// Cold start 초기화 — appData(공용) 시드 (non-blocking: 요청을 블로킹하지 않음)
 async function initDB() {
   const db = await load();
   if (!db.stocks.length) {
@@ -125,14 +122,8 @@ async function initDB() {
   }
 }
 
-app.use(async (req, res, next) => {
-  if (!initialized) {
-    if (!initPromise) initPromise = initDB();
-    try { await initPromise; initialized = true; }
-    catch (e) { console.error('DB init failed:', e); return res.status(500).json({ error: 'DB init failed' }); }
-  }
-  next();
-});
+// 요청을 블로킹하지 않고 백그라운드에서 appData 시드
+initDB().catch(e => console.error('[server] initDB error:', e));
 
 // async route 에러를 next(err)로 전달 → 전역 에러 핸들러가 처리
 const wrap = fn => (req, res, next) => fn(req, res, next).catch(next);
