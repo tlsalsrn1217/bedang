@@ -11,6 +11,7 @@ const { scoreStocks, DEFAULT_CONFIG } = require('./scoring');
 const { fetchMetrics, fetchMany, clearCache } = require('./crawler');
 const { explainStock, parseExplainRaw, recommendConfig, classifyAndCheck, classifyNewsImpact } = require('./llm');
 const { analyzeQualitative } = require('./qualitative');
+const { searchNews } = require('./news');
 const { load, save, loadQualitative, saveQualitative, loadAllQualitative } = require('./db');
 
 // ── JWT 유틸 (외부 패키지 없이 순수 crypto) ──────────────────────
@@ -405,110 +406,23 @@ app.put('/api/settings', wrap(async (req, res) => {
 }));
 
 // ── 뉴스 ──────────────────────────────────────────────────────────
-
-const SOURCE_RANK = {
-  '연합뉴스':0,'뉴시스':0,'연합인포맥스':0,
-  '한국경제':1,'매일경제':1,'조선비즈':1,'헤럴드경제':1,'서울경제':1,
-  '이데일리':2,'머니투데이':2,'아시아경제':2,'파이낸셜뉴스':2,'데일리안':2,
-  'KBS':1,'MBC':1,'SBS':1,'YTN':1,
-};
-function sourceScore(src) {
-  if (!src) return 9;
-  for (const [key, rank] of Object.entries(SOURCE_RANK)) {
-    if (src.includes(key)) return rank;
-  }
-  return 5;
-}
-const DOMAIN_SOURCE = {
-  'hankyung.com':'한국경제','mk.co.kr':'매일경제','chosun.com':'조선비즈',
-  'yna.co.kr':'연합뉴스','yonhapnews.co.kr':'연합뉴스','newsis.com':'뉴시스',
-  'infomax.co.kr':'연합인포맥스','heraldcorp.com':'헤럴드경제','sedaily.com':'서울경제',
-  'edaily.co.kr':'이데일리','mt.co.kr':'머니투데이','asiae.co.kr':'아시아경제',
-  'fnnews.com':'파이낸셜뉴스','dailian.co.kr':'데일리안',
-  'kbs.co.kr':'KBS','mbc.co.kr':'MBC','sbs.co.kr':'SBS','ytn.co.kr':'YTN',
-};
-function domainToSource(url) {
-  try { return DOMAIN_SOURCE[new URL(url).hostname.replace(/^www\./, '')] || ''; }
-  catch (_) { return ''; }
-}
-async function fetchNaverItems(stockName, clientId, clientSecret) {
-  const q   = encodeURIComponent(`${stockName} 주식`);
-  const url = `https://openapi.naver.com/v1/search/news.json?query=${q}&display=10&sort=date`;
-  const r   = await fetch(url, {
-    headers: { 'X-Naver-Client-Id': clientId, 'X-Naver-Client-Secret': clientSecret },
-    signal:  AbortSignal.timeout(8000),
-  });
-  if (!r.ok) throw new Error(`Naver HTTP ${r.status}`);
-  const data = await r.json();
-  return (data.items || []).map(item => {
-    const title = item.title
-      .replace(/<[^>]+>/g, '').replace(/&amp;/g,'&').replace(/&lt;/g,'<')
-      .replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#039;/g,"'").trim();
-    const link = item.originallink || item.link;
-    return { title, link, pubDate: item.pubDate, source: domainToSource(link), via: 'naver',
-      ts: item.pubDate ? new Date(item.pubDate).getTime() : 0 };
-  });
-}
-
+// 쿼리: ?platforms=naver,google&period=30d&tier=2&types=배당·주주환원,실적&sort=recent
 app.get('/api/news/:code', wrap(async (req, res) => {
   const uid   = getUid(req);
   const db    = await load(uid);
   const key   = decodeURIComponent(req.params.code);
   const stock = db.stocks.find(s => s.code === key || s.name === key);
   if (!stock) return res.status(404).json({ error: '종목 없음' });
+
+  const platforms = (req.query.platforms || 'naver,google').split(',').map(s => s.trim()).filter(Boolean);
+  const period    = req.query.period || '30d';
+  const maxTier   = req.query.tier   || '2';
+  const types     = (req.query.types || '').split(',').map(s => s.trim()).filter(Boolean);
+  const sort      = req.query.sort   || 'recent';
+
   try {
-    const q           = encodeURIComponent(`${stock.name} 주식`);
-    const googleItems = [];
-    try {
-      const r = await fetch(`https://news.google.com/rss/search?q=${q}&hl=ko&gl=KR&ceid=KR:ko`,
-        { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000) });
-      if (r.ok) {
-        const xml = await r.text();
-        const re  = /<item>([\s\S]*?)<\/item>/g;
-        let m;
-        while ((m = re.exec(xml)) !== null && googleItems.length < 15) {
-          const t   = m[1];
-          const get = tag => {
-            const x = t.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`));
-            return x ? x[1].replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, '').trim() : '';
-          };
-          const linkM  = t.match(/<link[^/]?\/?>\s*(https?:\/\/[^\s<]+)/);
-          const link   = linkM ? linkM[1].trim() : get('guid');
-          const title  = get('title');
-          const pubDate = get('pubDate');
-          if (title && link) googleItems.push({ title, link, pubDate,
-            source: get('source'), via: 'google', ts: pubDate ? new Date(pubDate).getTime() : 0 });
-        }
-      }
-    } catch (_) {}
-
-    let naverItems = [];
-    const naverId     = process.env.NAVER_CLIENT_ID;
-    const naverSecret = process.env.NAVER_CLIENT_SECRET;
-    if (naverId && naverSecret) {
-      try { naverItems = await fetchNaverItems(stock.name, naverId, naverSecret); } catch (_) {}
-    }
-
-    const normalize = s => s.toLowerCase().replace(/\s+/g,'').replace(/[^\w가-힣]/g,'');
-    const seen      = new Set(naverItems.map(i => normalize(i.title)));
-    const merged    = [...naverItems];
-    for (const item of googleItems) {
-      const n = normalize(item.title);
-      if (!seen.has(n)) { seen.add(n); merged.push(item); }
-    }
-
-    const today    = Date.now();
-    const oneDayMs = 86400000;
-    merged.sort((a, b) => {
-      const aToday = (today - a.ts) < oneDayMs ? 0 : 1;
-      const bToday = (today - b.ts) < oneDayMs ? 0 : 1;
-      if (aToday !== bToday) return aToday - bToday;
-      const sA = sourceScore(a.source), sB = sourceScore(b.source);
-      if (sA !== sB) return sA - sB;
-      return b.ts - a.ts;
-    });
-
-    res.json({ news: merged.slice(0, 8).map(({ ts, ...n }) => n), stock: stock.name });
+    const news = await searchNews(stock.name, { platforms, period, maxTier, types, sort, limit: 12 });
+    res.json({ news, stock: stock.name, query: { platforms, period, maxTier, types, sort } });
   } catch (e) {
     res.status(500).json({ error: String(e.message) });
   }

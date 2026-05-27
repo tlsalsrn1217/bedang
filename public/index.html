@@ -1304,8 +1304,9 @@ function toggleQtagLeg(e){
   if(window.lucide&&lucide.createIcons)lucide.createIcons();
 }
 function closeQtagLeg(){document.getElementById('qtagLegOv').classList.remove('on');}
-// 모달 단위 뉴스 캐시 (영향도 분류용)
-let _lastNewsItems=[], _lastNewsStock='';
+// 모달 단위 뉴스 캐시 (영향도 분류용 + 같은 조건 재호출 방지용)
+let _lastNewsItems=[], _lastNewsStock='', _lastNewsKey='';
+const _newsCache=new Map(); // key = stockName + '|' + queryString → news[]
 function _impactLabel(impact){
   return ({
     priced_in:    `<span class="news-impact priced" title="시장이 이미 알고 가격에 반영했을 정보"><i data-lucide="check" class="lc"></i>선반영</span>`,
@@ -1313,37 +1314,119 @@ function _impactLabel(impact){
     neutral:      `<span class="news-impact neutral" title="주가 영향이 미미한 일반 정보"><i data-lucide="minus" class="lc"></i>참고</span>`,
   })[impact]||'';
 }
+function _tierBadge(tier){
+  const t=Number(tier)||3;
+  const meta=t===1?{label:'1등급',icon:'shield-check',title:'1등급 — 통신사·주요 경제지·공영방송·공시'}
+            :t===2?{label:'2등급',icon:'shield',title:'2등급 — 일반 종합·전문지'}
+            :{label:'미분류',icon:'help-circle',title:'3등급 — 미분류 / 출처 불명'};
+  return `<span class="news-tier t${t}" title="${meta.title}"><i data-lucide="${meta.icon}" class="lc"></i>${meta.label}</span>`;
+}
+function _typeTags(types){
+  if(!types||!types.length)return '';
+  return `<span class="news-types">${types.map(t=>{
+    const cls=t==='배당·주주환원'?'news-type-tag dividend':'news-type-tag';
+    return `<span class="${cls}">${t}</span>`;
+  }).join('')}</span>`;
+}
 function renderNewsBox(news, classifications){
   const box=document.getElementById('newsBox');
   if(!box)return;
+  if(!news||news.length===0){
+    box.innerHTML='<div class="news-empty">선택한 조건에 해당하는 뉴스가 없습니다.<br><b>고급 검색</b>에서 기간을 늘리거나 공신력/이슈 유형을 완화해 보세요.</div>';
+    return;
+  }
   const map={};
   (classifications||[]).forEach(c=>{ map[c.index-1]=c; });
   box.innerHTML=news.map((n,i)=>{
     const date=n.pubDate?new Date(n.pubDate).toLocaleDateString('ko-KR',{month:'short',day:'numeric'}):'';
     const meta=[n.source,date].filter(Boolean).join(' · ');
-    const badge=n.via?`<span class="news-via ${n.via}">${n.via==='naver'?'N':'G'}</span>`:'';
+    const via=n.via?`<span class="news-via ${n.via}">${n.via==='naver'?'N':'G'}</span>`:'';
+    const tier=_tierBadge(n.tier);
+    const types=_typeTags(n.types);
     const cls=map[i];
     const impactHtml=cls?_impactLabel(cls.impact):'';
     const reasonHtml=(cls&&cls.reason)?`<div class="news-impact-reason">${cls.reason}</div>`:'';
-    return`<div class="news-item">${impactHtml}<a href="${n.link}" target="_blank" rel="noopener noreferrer">${badge}${n.title}</a>${meta?`<div class="news-meta">${meta}</div>`:''}${reasonHtml}</div>`;
+    const isDividend=(n.types||[]).includes('배당·주주환원')?'has-dividend':'';
+    return`<div class="news-item ${isDividend}">${impactHtml}${tier}<a href="${n.link}" target="_blank" rel="noopener noreferrer">${via}${n.title}</a>${types}${meta?`<div class="news-meta">${meta}</div>`:''}${reasonHtml}</div>`;
   }).join('');
   if(window.lucide&&lucide.createIcons)lucide.createIcons();
 }
+function toggleNewsAdv(){
+  const adv=document.getElementById('newsAdv');
+  const btn=document.getElementById('newsAdvToggle');
+  if(!adv||!btn)return;
+  const open=!adv.classList.contains('open');
+  adv.classList.toggle('open',open);
+  btn.classList.toggle('open',open);
+}
+// 칩(label.chk) 클릭 → input 상태에 맞춰 on 토글 (라디오 그룹 동기화 포함)
+document.addEventListener('click',function(e){
+  const lbl=e.target.closest('.news-adv label.chk');
+  if(!lbl)return;
+  // label 클릭 시 native click이 input.checked를 토글한 직후라 setTimeout 0으로 sync
+  setTimeout(()=>{
+    const inp=lbl.querySelector('input');
+    if(!inp)return;
+    if(inp.type==='radio'){
+      document.querySelectorAll(`.news-adv label.chk input[name="${inp.name}"]`).forEach(o=>{
+        o.closest('label').classList.toggle('on',o.checked);
+      });
+    }else{
+      lbl.classList.toggle('on',inp.checked);
+    }
+  },0);
+});
+function _readNewsOpts(){
+  const platforms=[...document.querySelectorAll('.news-adv label.chk[data-platform] input')]
+    .filter(i=>i.checked).map(i=>i.closest('label').dataset.platform);
+  const periodEl=document.getElementById('newsPeriod');
+  const period=periodEl?periodEl.value:'30d';
+  const tierEl=document.querySelector('.news-adv input[name="newsTier"]:checked');
+  const tier=tierEl?tierEl.value:'2';
+  const types=[...document.querySelectorAll('.news-adv label.chk[data-type] input')]
+    .filter(i=>i.checked).map(i=>i.closest('label').dataset.type);
+  const sortEl=document.querySelector('.news-adv input[name="newsSort"]:checked');
+  const sort=sortEl?sortEl.value:'recent';
+  return {platforms,period,tier,types,sort};
+}
 async function fetchNews(name,btn){
-  btn.disabled=true;btn.textContent='불러오는 중…';
-  const box=document.getElementById('newsBox');
+  const opts=_readNewsOpts();
+  if(opts.platforms.length===0){
+    document.getElementById('newsBox').innerHTML='<div class="news-empty">⚠ 플랫폼을 하나 이상 선택해주세요 (네이버/구글).</div>';
+    return;
+  }
+  const params=new URLSearchParams({
+    platforms:opts.platforms.join(','),
+    period:opts.period,
+    tier:opts.tier,
+    types:opts.types.join(','),
+    sort:opts.sort,
+  });
+  const key=name+'|'+params.toString();
   const classifyBtn=document.getElementById('classifyBtn');
+  // 같은 조건 캐시 재사용 — 토큰/API 절약
+  if(_newsCache.has(key)){
+    const cached=_newsCache.get(key);
+    _lastNewsItems=cached;_lastNewsStock=name;_lastNewsKey=key;
+    renderNewsBox(cached,null);
+    if(classifyBtn){classifyBtn.style.display=cached.length?'inline-flex':'none';classifyBtn.disabled=false;classifyBtn.textContent='✦ 영향도 분류';}
+    btn.textContent='↻ 새로고침';
+    return;
+  }
+  btn.disabled=true;btn.textContent='검색 중…';
+  const box=document.getElementById('newsBox');
   if(classifyBtn){classifyBtn.style.display='none';classifyBtn.disabled=false;classifyBtn.textContent='✦ 영향도 분류';}
-  _lastNewsItems=[];_lastNewsStock='';
+  _lastNewsItems=[];_lastNewsStock='';_lastNewsKey='';
   box.innerHTML='<div style="color:var(--dim);font-size:13px">뉴스를 검색 중입니다<span class="stream-cursor"></span></div>';
   try{
-    const r=await apiFetch('/api/news/'+encodeURIComponent(name));
+    const r=await apiFetch('/api/news/'+encodeURIComponent(name)+'?'+params);
     const j=await r.json();
     if(j.error){box.innerHTML=`<span style="color:var(--bad)">${j.error}</span>`;btn.disabled=false;btn.textContent='뉴스 불러오기';return;}
-    if(!j.news||j.news.length===0){box.innerHTML='<span style="color:var(--dim);font-size:13px">관련 뉴스를 찾지 못했습니다.</span>';btn.disabled=false;btn.textContent='↻ 새로고침';return;}
-    _lastNewsItems=j.news;_lastNewsStock=name;
-    renderNewsBox(j.news,null);
-    if(classifyBtn)classifyBtn.style.display='inline-flex';
+    const news=Array.isArray(j.news)?j.news:[];
+    _newsCache.set(key,news);
+    _lastNewsItems=news;_lastNewsStock=name;_lastNewsKey=key;
+    renderNewsBox(news,null);
+    if(classifyBtn)classifyBtn.style.display=news.length?'inline-flex':'none';
     btn.textContent='↻ 새로고침';
   }catch(e){
     box.innerHTML='<span style="color:var(--bad)">⚠ 백엔드 미연결</span>';
