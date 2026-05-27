@@ -464,7 +464,7 @@
       <button onclick="openAddStock()" class="applybtn" style="white-space:nowrap;flex-shrink:0;margin-top:4px">+ 종목 추가</button>
     </div>
     <table><thead><tr>
-      <th>#</th><th>종목<button class="qtag-help-btn" id="qtagHelpBtn" onclick="event.stopPropagation();toggleQtagLeg(event)" title="정성 태그 아이콘 안내"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button></th>
+      <th>#</th><th>종목</th>
       <th class="num core">PER<span class="help" onclick="event.stopPropagation();gloss('PER')">?</span></th>
       <th class="num core">PBR<span class="help" onclick="event.stopPropagation();gloss('PBR')">?</span></th>
       <th class="num core">ROE<span class="help" onclick="event.stopPropagation();gloss('ROE')">?</span></th>
@@ -1106,7 +1106,8 @@ function _qualIconHtml(name){
   const meta=(typeof _qualTagMeta==='function')?_qualTagMeta(t.premiumTag):null;
   if(!meta)return '';
   const tip=`${meta.label} — ${meta.hint} (정성 태그, 점수 무관)`;
-  return `<i data-lucide="${meta.icon}" class="lc row-qtag ${meta.cls}" title="${tip.replace(/"/g,'&quot;')}"></i>`;
+  const helpSvg=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  return `<i data-lucide="${meta.icon}" class="lc row-qtag ${meta.cls}" title="${tip.replace(/"/g,'&quot;')}"></i><button class="qtag-help-btn" onclick="event.stopPropagation();toggleQtagLeg(event)" title="정성 태그 설명">${helpSvg}</button>`;
 }
 function renderRows(){
   let filtered=DATA;
