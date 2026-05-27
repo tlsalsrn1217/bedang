@@ -107,6 +107,33 @@
   .news-via{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-right:4px;vertical-align:middle;line-height:1.6}
   .news-via.naver{background:#03c75a22;color:#03c75a}
   .news-via.google{background:#4285f422;color:#4285f4}
+  /* 뉴스 카드 — 고급 검색 패널 */
+  .news-adv{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:none}
+  .news-adv.open{display:block}
+  .news-adv .row{display:flex;align-items:center;gap:10px;margin:7px 0;flex-wrap:wrap;font-size:12px;color:var(--soft)}
+  .news-adv .row > .lbl{width:60px;flex-shrink:0;color:var(--dim);font-weight:700;font-size:11px;letter-spacing:.02em}
+  .news-adv label.chk{display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:3px 9px;border-radius:14px;border:1px solid var(--line);background:var(--paper2);transition:.13s;color:var(--soft);font-size:12px}
+  .news-adv label.chk:hover{border-color:var(--accent-soft)}
+  .news-adv label.chk input{display:none}
+  .news-adv label.chk.on{background:rgba(49,130,246,.16);border-color:var(--accent);color:var(--accent-soft)}
+  .news-adv select{background:var(--paper2);border:1px solid var(--line);border-radius:7px;color:var(--txt);padding:5px 9px;font-size:12px;font-family:inherit;cursor:pointer;outline:none}
+  .news-adv select:focus{border-color:var(--accent)}
+  .news-adv-toggle{background:none;border:1px solid var(--line);color:var(--soft);padding:5px 11px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:.13s;display:inline-flex;align-items:center;gap:4px;letter-spacing:-.01em}
+  .news-adv-toggle:hover{border-color:var(--accent-soft);color:var(--accent-soft)}
+  .news-adv-toggle .lc{transition:transform .2s;width:12px;height:12px}
+  .news-adv-toggle.open .lc{transform:rotate(180deg)}
+  /* 뉴스 아이템 등급 뱃지·유형 태그·배당 강조 */
+  .news-item.has-dividend{border-left:2px solid var(--accent);padding-left:9px;background:rgba(49,130,246,.04);border-radius:6px}
+  .news-tier{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;margin-right:5px;vertical-align:1px;line-height:1.5}
+  .news-tier.t1{background:rgba(63,185,80,.16);color:var(--good)}
+  .news-tier.t2{background:rgba(124,136,150,.16);color:var(--soft)}
+  .news-tier.t3{background:rgba(124,136,150,.08);color:var(--dim)}
+  .news-tier .lc{width:9px;height:9px}
+  .news-types{display:inline-flex;flex-wrap:wrap;gap:3px;margin-left:4px;vertical-align:middle}
+  .news-type-tag{font-size:9px;font-weight:600;padding:1px 6px;border-radius:8px;background:rgba(124,136,150,.10);color:var(--dim);letter-spacing:-.01em}
+  .news-type-tag.dividend{background:rgba(49,130,246,.18);color:var(--accent-soft);font-weight:700}
+  .news-empty{color:var(--dim);font-size:13px;padding:12px 0;text-align:center;line-height:1.6}
+  .news-empty b{color:var(--soft)}
   /* 뉴스 영향도 라벨 (시장 반영 여부) */
   .news-impact{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:6px;vertical-align:1px;line-height:1.4;letter-spacing:.02em}
   .news-impact.priced{background:rgba(124,136,150,.18);color:var(--soft)}
@@ -141,10 +168,13 @@
   .qtag-help-btn{background:none;border:1px solid var(--line);color:var(--dim);cursor:pointer;padding:0;width:15px;height:15px;border-radius:50%;margin-left:5px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center;transition:.12s;flex-shrink:0}
   .qtag-help-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
   .qtag-help-btn svg{width:9px;height:9px;stroke-width:2.5}
-  .qtag-leg-ov{position:fixed;inset:0;z-index:70;display:none}
-  .qtag-leg-ov.on{display:block}
-  .qtag-leg{position:fixed;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;width:310px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:fade .2s ease}
-  .qtag-leg h5{font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.05em;text-transform:uppercase;margin:0 0 12px}
+  .qtag-leg-ov{position:fixed;inset:0;z-index:75;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
+  .qtag-leg-ov.on{display:flex}
+  .qtag-leg{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;width:320px;max-width:calc(100vw - 40px);box-shadow:0 16px 48px rgba(0,0,0,.55);animation:fade .2s ease}
+  .qtag-leg-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .qtag-leg-hd h5{font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.05em;text-transform:uppercase;margin:0}
+  .qtag-leg-close{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;padding:0;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:5px;line-height:1;transition:.12s}
+  .qtag-leg-close:hover{background:var(--paper2);color:var(--txt)}
   .qtag-leg-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2)}
   .qtag-leg-item:last-child{border-bottom:none;padding-bottom:0}
   .qtag-leg-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1204,12 +1234,53 @@ function openM(d){
           <div class="modal-rsec">
             <div class="modal-rsec-head">
               <h4><i data-lucide="newspaper" class="lc"></i>관련 뉴스</h4>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <button class="news-adv-toggle" id="newsAdvToggle" onclick="toggleNewsAdv()" type="button"><i data-lucide="sliders-horizontal" class="lc"></i>고급 검색<i data-lucide="chevron-down" class="lc"></i></button>
                 <button class="genbtn" id="classifyBtn" onclick="classifyNews(this)" style="display:none">✦ 영향도 분류</button>
                 <button class="newsbtn" id="newsBtn" onclick="fetchNews('${esc(d.name)}',this)">뉴스 불러오기</button>
               </div>
             </div>
-            <div id="newsBox"><span style="color:var(--dim);font-size:13px">버튼을 눌러 최신 관련 뉴스를 불러오세요. 그 후 ✦ 영향도 분류로 각 뉴스가 시장에 선반영/미반영인지 확인할 수 있습니다.</span></div>
+            <div class="news-adv" id="newsAdv">
+              <div class="row">
+                <span class="lbl">플랫폼</span>
+                <label class="chk on" data-platform="naver"><input type="checkbox" checked>네이버</label>
+                <label class="chk on" data-platform="google"><input type="checkbox" checked>구글</label>
+              </div>
+              <div class="row">
+                <span class="lbl">기간</span>
+                <select id="newsPeriod">
+                  <option value="7d">최근 1주</option>
+                  <option value="30d" selected>최근 1개월</option>
+                  <option value="90d">최근 3개월</option>
+                  <option value="365d">최근 1년</option>
+                  <option value="all">전체</option>
+                </select>
+              </div>
+              <div class="row">
+                <span class="lbl">공신력</span>
+                <label class="chk" data-tier="1"><input type="radio" name="newsTier" value="1">1등급만</label>
+                <label class="chk on" data-tier="2"><input type="radio" name="newsTier" value="2" checked>2등급까지</label>
+                <label class="chk" data-tier="3"><input type="radio" name="newsTier" value="3">3등급까지 (전체)</label>
+              </div>
+              <div class="row">
+                <span class="lbl">이슈</span>
+                <label class="chk" data-type="실적"><input type="checkbox">실적</label>
+                <label class="chk" data-type="M&A"><input type="checkbox">M&amp;A</label>
+                <label class="chk" data-type="신사업"><input type="checkbox">신사업</label>
+                <label class="chk" data-type="배당·주주환원"><input type="checkbox">배당·주주환원</label>
+                <label class="chk" data-type="규제·소송"><input type="checkbox">규제·소송</label>
+                <label class="chk" data-type="경영진"><input type="checkbox">경영진</label>
+              </div>
+              <div class="row">
+                <span class="lbl">정렬</span>
+                <label class="chk on" data-sort="recent"><input type="radio" name="newsSort" value="recent" checked>최신순</label>
+                <label class="chk" data-sort="trust"><input type="radio" name="newsSort" value="trust">공신력순</label>
+              </div>
+              <div class="row" style="justify-content:flex-end;margin-top:10px;font-size:10px;color:var(--dim)">
+                ※ 미분류 매체는 3등급, 이슈 유형은 제목 키워드 매칭. AI 자의 판단 없음.
+              </div>
+            </div>
+            <div id="newsBox"><span style="color:var(--dim);font-size:13px">버튼을 눌러 최신 관련 뉴스를 불러오세요. 고급 검색에서 기간·공신력·이슈 유형을 좁힐 수 있습니다.</span></div>
           </div>
         </div>
       </div>
@@ -1226,13 +1297,9 @@ function switchModalTab(name){
 }
 function closeM(){document.getElementById('ov').classList.remove('on');document.body.style.overflow='';}
 function toggleQtagLeg(e){
+  e.stopPropagation();
   const ov=document.getElementById('qtagLegOv');
-  const pop=document.getElementById('qtagLeg');
   if(ov.classList.contains('on')){closeQtagLeg();return;}
-  const r=e.currentTarget.getBoundingClientRect();
-  const left=Math.max(8,Math.min(r.left,window.innerWidth-326));
-  pop.style.left=left+'px';
-  pop.style.top=(r.bottom+8)+'px';
   ov.classList.add('on');
   if(window.lucide&&lucide.createIcons)lucide.createIcons();
 }
@@ -1352,7 +1419,8 @@ function renderQualBox(q,at){
   const dateStr=at?new Date(at).toLocaleDateString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
   const metaHtml=dateStr?`<div class="qual-meta">분석 ${dateStr}${q.asOf?' · 조사 기준 '+q.asOf:''}</div>`:'';
   const tag=_qualTagMeta(q.premiumTag);
-  const tagHtml=tag?`<div class="qual-tag ${tag.cls}" title="${tag.hint}"><i data-lucide="${tag.icon}" class="lc"></i>${tag.label}</div>`:'';
+  const _qHelpSvg=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:9px;height:9px;stroke-width:2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  const tagHtml=tag?`<div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:10px"><div class="qual-tag ${tag.cls}" style="margin-bottom:0" title="${tag.hint}"><i data-lucide="${tag.icon}" class="lc"></i>${tag.label}</div><button class="qtag-help-btn" onclick="event.stopPropagation();toggleQtagLeg(event)" title="태그 유형 설명">${_qHelpSvg}</button></div>`:'';
   const ctx=strip(q.contextNote);
   const ctxHtml=ctx?(tag?
     `<div class="qual-section"><span class="lbl">맥락</span>${ctx}</div>`:
@@ -2292,7 +2360,10 @@ function toggleNav(){
 <!-- 정성 태그 아이콘 설명 팝업 -->
 <div class="qtag-leg-ov" id="qtagLegOv" onclick="closeQtagLeg()">
   <div class="qtag-leg" id="qtagLeg" onclick="event.stopPropagation()">
-    <h5>정성 태그 아이콘 — 이렇게 보세요</h5>
+    <div class="qtag-leg-hd">
+      <h5>정성 태그 아이콘 — 이렇게 보세요</h5>
+      <button class="qtag-leg-close" onclick="closeQtagLeg()">×</button>
+    </div>
     <div class="qtag-leg-item">
       <div class="qtag-leg-ico growth"><i data-lucide="rocket" style="width:16px;height:16px;stroke-width:2;color:var(--accent-soft)"></i></div>
       <div class="qtag-leg-body">
