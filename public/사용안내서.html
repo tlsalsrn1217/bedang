@@ -22,11 +22,29 @@
   .shelf-header{margin-bottom:44px}
   .shelf-header h1{font-size:28px;font-weight:800;letter-spacing:-.04em}
   .shelf-header p{color:var(--soft);font-size:14px;margin-top:8px}
-  .shelf-grid{display:flex;flex-wrap:wrap;gap:20px}
-  .book-card{width:180px;background:var(--paper);border:1px solid var(--line);border-radius:16px;cursor:pointer;transition:.2s;overflow:hidden;display:flex;flex-direction:column;user-select:none}
-  .book-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 12px 32px rgba(49,130,246,.18)}
-  .book-cover{height:130px;background:linear-gradient(135deg,rgba(49,130,246,.14),rgba(63,185,80,.08));display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line)}
-  .book-info{padding:13px 14px 15px}
+  .shelf-grid{display:flex;flex-wrap:wrap;gap:32px}
+  .book-card{width:200px;background:transparent;border:none;cursor:pointer;transition:transform .25s ease,filter .25s ease;display:flex;flex-direction:column;user-select:none;text-decoration:none}
+  .book-card:hover{transform:translateY(-6px) rotate(-.4deg);filter:drop-shadow(0 16px 26px rgba(0,0,0,.55))}
+  .book-cover{position:relative;aspect-ratio:2/3;border-radius:2px 7px 7px 2px;overflow:hidden;display:flex;flex-direction:column;padding:22px 18px 20px 28px;color:#efe6d5;
+    box-shadow:0 10px 22px rgba(0,0,0,.45), inset 1px 0 0 rgba(255,255,255,.05), inset 7px 0 14px -7px rgba(0,0,0,.7), inset -1px 0 0 rgba(255,255,255,.04);
+    background:
+      radial-gradient(120% 80% at 28% 0%, rgba(255,255,255,.10), transparent 55%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0 2px, transparent 2px 4px),
+      linear-gradient(165deg, var(--cv-a) 0%, var(--cv-b) 100%);}
+  /* book spine shadow */
+  .book-cover::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,.05));border-right:1px solid rgba(255,255,255,.06)}
+  /* top hairline */
+  .book-cover::after{content:"";position:absolute;left:28px;right:18px;top:18px;height:1px;background:currentColor;opacity:.32}
+  .cv-series{font-size:8.5px;font-weight:700;letter-spacing:.26em;opacity:.62;margin-top:14px}
+  .cv-vol{font-size:10px;font-weight:800;letter-spacing:.32em;opacity:.9;margin-top:5px}
+  .cv-title{font-size:19px;font-weight:800;letter-spacing:-.03em;line-height:1.22;margin:auto 0;color:#fff}
+  .cv-foot{display:flex;align-items:center;gap:9px;font-size:8.5px;font-weight:700;letter-spacing:.22em;opacity:.6}
+  .cv-foot::before{content:"";width:16px;height:1px;background:currentColor;opacity:.7}
+  /* per-volume themes */
+  .book-card.bk-1 .book-cover{--cv-a:#1f3a63;--cv-b:#0a1a31}
+  .book-card.bk-2 .book-cover{--cv-a:#1f4d3c;--cv-b:#0a2419}
+  .book-card.bk-3 .book-cover{--cv-a:#6e3a1c;--cv-b:#341509}
+  .book-info{padding:14px 4px 4px}
   .book-info h3{font-size:12.5px;font-weight:700;letter-spacing:-.02em;line-height:1.5;margin-bottom:5px;color:var(--txt)}
   .book-info p{font-size:11px;color:var(--dim);font-weight:500}
   /* back button */
@@ -114,18 +132,40 @@
     <p>읽고 싶은 책을 선택하세요</p>
   </div>
   <div class="shelf-grid">
-    <div class="book-card" onclick="openBook()">
-      <div class="book-cover"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-soft)"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+    <div class="book-card bk-1" onclick="openBook()">
+      <div class="book-cover">
+        <div class="cv-series">DIVIDEND&nbsp;SERIES</div>
+        <div class="cv-vol">VOL.&nbsp;I</div>
+        <div class="cv-title">배당주<br>종합 점수<br>대시보드<br>사용 안내서</div>
+        <div class="cv-foot">TLSAL&nbsp;EDITION</div>
+      </div>
       <div class="book-info">
         <h3>배당주 종합 점수<br>대시보드 사용 안내서</h3>
         <p>10장 · 처음 사용자를 위한 안내</p>
       </div>
     </div>
-    <a class="book-card" href="배당투자AI_사용가이드.html" style="text-decoration:none">
-      <div class="book-cover" style="background:linear-gradient(135deg,rgba(63,185,80,.14),rgba(49,130,246,.08))"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--good)"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/><path d="M16.5 4.5 18 6l1.5-1.5"/></svg></div>
+    <a class="book-card bk-2" href="배당투자AI_사용가이드.html">
+      <div class="book-cover">
+        <div class="cv-series">DIVIDEND&nbsp;SERIES</div>
+        <div class="cv-vol">VOL.&nbsp;II</div>
+        <div class="cv-title">배당투자AI<br>사용 가이드</div>
+        <div class="cv-foot">TLSAL&nbsp;EDITION</div>
+      </div>
       <div class="book-info">
         <h3>배당투자AI<br>사용 가이드</h3>
         <p>8장 · 전체 기능 완전 정복</p>
+      </div>
+    </a>
+    <a class="book-card bk-3" href="배당투자_인사이트.html">
+      <div class="book-cover">
+        <div class="cv-series">DIVIDEND&nbsp;SERIES</div>
+        <div class="cv-vol">VOL.&nbsp;III</div>
+        <div class="cv-title">배당투자<br>인사이트</div>
+        <div class="cv-foot">TLSAL&nbsp;EDITION</div>
+      </div>
+      <div class="book-info">
+        <h3>배당투자<br>인사이트</h3>
+        <p>6장 · 흔들리지 않는 현금흐름의 철학</p>
       </div>
     </a>
   </div>
