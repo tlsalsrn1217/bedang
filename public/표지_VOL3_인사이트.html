@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>배당투자 인사이트 — VOL.III</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#222;font-family:'Pretendard',-apple-system,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:40px 0;min-height:100vh}
+  .cover{
+    width:1600px;height:2560px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(75% 55% at 50% 30%, #1a7048 0%, transparent 70%),
+      linear-gradient(170deg,#0d5836 0%,#072818 100%);
+    color:#fff9eb;
+    box-shadow:0 40px 90px rgba(0,0,0,.6);
+  }
+  .title{
+    position:absolute;top:200px;left:120px;
+    display:flex;flex-direction:column;align-items:flex-start;
+    line-height:.88;letter-spacing:-.07em;font-weight:900;
+  }
+  .t-bg{
+    font-size:440px;color:#e8b430;
+    -webkit-text-stroke:12px #0a0a0a;
+    text-shadow:22px 22px 0 rgba(0,0,0,.78);
+    margin-bottom:30px;
+  }
+  .t-mid{
+    font-size:300px;color:#fff9eb;
+    -webkit-text-stroke:6px #0a0a0a;
+    margin-left:30px;margin-bottom:36px;
+  }
+  .t-block{
+    font-size:300px;color:#e8b430;
+    -webkit-text-stroke:10px #0a0a0a;
+    text-shadow:14px 14px 0 rgba(0,0,0,.55);
+    margin-left:40px;
+    line-height:.95;
+  }
+  .illust{
+    position:absolute;left:50%;transform:translateX(-50%);
+    bottom:110px;width:1380px;
+  }
+</style>
+</head>
+<body>
+<div class="cover">
+  <h1 class="title">
+    <span class="t-bg">배당</span>
+    <span class="t-mid">투자</span>
+    <span class="t-block">인사이트</span>
+  </h1>
+
+  <!-- 큰 상승 막대 차트 + 화살표 -->
+  <svg class="illust" viewBox="0 0 1380 900">
+    <!-- baseline -->
+    <line x1="40" y1="830" x2="1340" y2="830" stroke="#e8b430" stroke-width="14" stroke-linecap="round"/>
+    <!-- 5 ascending bars -->
+    <rect x="80"   y="640" width="200" height="190" fill="#fff9eb" stroke="#0a0a0a" stroke-width="14"/>
+    <rect x="320"  y="510" width="200" height="320" fill="#e8b430" stroke="#0a0a0a" stroke-width="14"/>
+    <rect x="560"  y="360" width="200" height="470" fill="#fff9eb" stroke="#0a0a0a" stroke-width="14"/>
+    <rect x="800"  y="200" width="200" height="630" fill="#e8b430" stroke="#0a0a0a" stroke-width="14"/>
+    <rect x="1040" y="60"  width="200" height="770" fill="#fff9eb" stroke="#0a0a0a" stroke-width="14"/>
+    <!-- ₩ on each bar -->
+    <text x="180"  y="730" text-anchor="middle" font-size="100" font-weight="900" fill="#0a0a0a">₩</text>
+    <text x="420"  y="615" text-anchor="middle" font-size="100" font-weight="900" fill="#0a0a0a">₩</text>
+    <text x="660"  y="490" text-anchor="middle" font-size="100" font-weight="900" fill="#0a0a0a">₩</text>
+    <text x="900"  y="345" text-anchor="middle" font-size="100" font-weight="900" fill="#0a0a0a">₩</text>
+    <text x="1140" y="240" text-anchor="middle" font-size="100" font-weight="900" fill="#0a0a0a">₩</text>
+    <!-- rising arrow trail (dashed) -->
+    <path d="M 160 560 L 1150 50" stroke="#fff9eb" stroke-width="26" fill="none" stroke-linecap="round" stroke-dasharray="34 26"/>
+    <!-- arrow head -->
+    <path d="M 1150 50 L 1070 90 M 1150 50 L 1100 160" stroke="#fff9eb" stroke-width="26" fill="none" stroke-linecap="round"/>
+    <!-- arrow tip dot -->
+    <circle cx="1156" cy="48" r="52" fill="#e8b430" stroke="#fff9eb" stroke-width="14"/>
+  </svg>
+</div>
+</body>
+</html>
