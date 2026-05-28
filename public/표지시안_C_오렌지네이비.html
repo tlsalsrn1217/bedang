@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>배당투자 인사이트 — 시안 C · 오렌지 + 네이비</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#222;font-family:'Pretendard',-apple-system,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:40px 0;min-height:100vh}
+  .cover{
+    width:1600px;height:2560px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(75% 55% at 50% 35%, #ff913a 0%, transparent 70%),
+      linear-gradient(170deg,#ff7a1a 0%,#e85c00 100%);
+    color:#0d1a36;
+    box-shadow:0 40px 90px rgba(0,0,0,.6);
+    display:flex;flex-direction:column;
+  }
+  /* TOP STRIP */
+  .top-strip{
+    height:220px;background:#0d1a36;color:#fff;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 70px;flex-shrink:0;border-bottom:8px solid #ff7a1a;
+  }
+  .top-copy{font-size:48px;font-weight:800;letter-spacing:-.025em;line-height:1.2}
+  .top-copy .hl{color:#ff9a3d;font-weight:900}
+  .top-copy .num{color:#ff9a3d;font-weight:900;font-size:64px}
+  .seal{
+    width:170px;height:170px;border-radius:50%;
+    background:#ff7a1a;color:#0d1a36;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:900;letter-spacing:-.02em;line-height:1.05;
+    border:6px solid #fff;box-shadow:0 8px 0 rgba(0,0,0,.3);
+    transform:rotate(-9deg);flex-shrink:0;
+  }
+  .seal .s1{font-size:22px;font-weight:900;letter-spacing:.05em;margin-bottom:3px}
+  .seal .s2{font-size:46px;font-weight:900;line-height:1}
+  .seal .s3{font-size:18px;margin-top:3px;letter-spacing:.1em}
+  /* BODY */
+  .body{flex:1;padding:80px 80px 0;display:flex;flex-direction:column;position:relative}
+  .tag{
+    display:inline-block;align-self:flex-start;
+    background:#0d1a36;color:#ff9a3d;
+    font-size:34px;font-weight:900;letter-spacing:-.02em;
+    padding:14px 30px;margin-bottom:50px;
+    border-left:8px solid #ff9a3d;
+  }
+  /* TITLE */
+  .title{display:flex;flex-direction:column;align-items:flex-start;line-height:.88;letter-spacing:-.07em;font-weight:900}
+  .t-bg{
+    font-size:380px;color:#0d1a36;
+    text-shadow:14px 14px 0 rgba(255,255,255,.45);
+    margin-bottom:24px;
+  }
+  .t-mid{
+    font-size:260px;color:#fff;
+    -webkit-text-stroke:5px #0d1a36;
+    margin-left:30px;margin-bottom:30px;
+  }
+  .t-block{
+    font-size:240px;color:#ff9a3d;
+    background:#0d1a36;
+    padding:18px 40px 30px;
+    line-height:.9;
+  }
+  /* BENEFIT */
+  .benefit{
+    margin-top:60px;background:#0d1a36;color:#fff;
+    padding:38px 50px;border-left:14px solid #ff9a3d;
+    display:flex;align-items:center;gap:36px;
+  }
+  .b-lbl{
+    font-size:24px;font-weight:900;color:#ff9a3d;letter-spacing:.18em;
+    writing-mode:vertical-rl;text-orientation:upright;
+    border-right:3px solid #ff9a3d;padding-right:18px;
+  }
+  .b-txt{font-size:46px;font-weight:900;letter-spacing:-.03em;line-height:1.25}
+  .b-txt .accent{color:#ff9a3d}
+  /* ILLUST — line chart with mountain peak */
+  .illust{
+    position:absolute;right:60px;bottom:380px;width:580px;
+    pointer-events:none;
+  }
+  /* BOTTOM */
+  .bottom-strip{
+    height:300px;background:#0d1a36;color:#fff;padding:36px 80px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    border-top:8px solid #ff7a1a;flex-shrink:0;
+  }
+  .b-sub{font-size:38px;font-weight:700;color:#ff9a3d;letter-spacing:-.02em;line-height:1.35}
+  .b-meta{display:flex;justify-content:space-between;align-items:flex-end}
+  .b-author{font-size:60px;font-weight:900;letter-spacing:-.03em}
+  .b-author .by{font-size:32px;font-weight:600;opacity:.7;margin-left:14px}
+  .b-pub{font-size:24px;font-weight:700;color:#ff9a3d;letter-spacing:.16em;text-align:right;line-height:1.5}
+  .b-pub .small{display:block;color:#fff;opacity:.55;font-size:18px;font-weight:600;letter-spacing:.1em;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="cover">
+  <!-- TOP -->
+  <div class="top-strip">
+    <div class="top-copy">은퇴 후 <span class="num">25</span><span class="hl">년</span>,<br>통장에 <span class="hl">월급이 꽂힌다</span></div>
+    <div class="seal">
+      <div class="s1">★ 화제의 ★</div>
+      <div class="s2">신간</div>
+      <div class="s3">NEW BOOK</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+    <div class="tag">6장에 담은 현금흐름의 원칙</div>
+    <h1 class="title">
+      <span class="t-bg">배당</span>
+      <span class="t-mid">투자</span>
+      <span class="t-block">인사이트</span>
+    </h1>
+
+    <div class="benefit">
+      <div class="b-lbl">KEY</div>
+      <div class="b-txt">
+        월급처럼 들어오는<br>
+        <span class="accent">평생 현금흐름</span>의 비밀
+      </div>
+    </div>
+
+    <!-- 일러스트: 우상향 라인 차트 + 봉우리 + 화살표 -->
+    <svg class="illust" viewBox="0 0 580 380">
+      <!-- baseline -->
+      <line x1="20" y1="350" x2="560" y2="350" stroke="#0d1a36" stroke-width="5" stroke-linecap="round"/>
+      <!-- grid lines -->
+      <line x1="20" y1="280" x2="560" y2="280" stroke="#0d1a36" stroke-width="2" stroke-dasharray="6 8" opacity=".35"/>
+      <line x1="20" y1="200" x2="560" y2="200" stroke="#0d1a36" stroke-width="2" stroke-dasharray="6 8" opacity=".35"/>
+      <line x1="20" y1="120" x2="560" y2="120" stroke="#0d1a36" stroke-width="2" stroke-dasharray="6 8" opacity=".35"/>
+      <!-- area fill -->
+      <path d="M 40 320 L 130 300 L 220 240 L 310 250 L 400 170 L 490 80 L 530 60 L 530 350 L 40 350 Z" fill="#0d1a36" opacity=".18"/>
+      <!-- line -->
+      <polyline points="40,320 130,300 220,240 310,250 400,170 490,80 530,60" stroke="#0d1a36" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      <!-- points -->
+      <circle cx="40"  cy="320" r="12" fill="#fff" stroke="#0d1a36" stroke-width="5"/>
+      <circle cx="130" cy="300" r="12" fill="#fff" stroke="#0d1a36" stroke-width="5"/>
+      <circle cx="220" cy="240" r="12" fill="#fff" stroke="#0d1a36" stroke-width="5"/>
+      <circle cx="310" cy="250" r="12" fill="#fff" stroke="#0d1a36" stroke-width="5"/>
+      <circle cx="400" cy="170" r="12" fill="#fff" stroke="#0d1a36" stroke-width="5"/>
+      <circle cx="490" cy="80"  r="12" fill="#fff" stroke="#0d1a36" stroke-width="5"/>
+      <circle cx="530" cy="60"  r="18" fill="#ff9a3d" stroke="#0d1a36" stroke-width="6"/>
+      <!-- arrow head -->
+      <path d="M 530 60 L 500 50 M 530 60 L 540 90" stroke="#0d1a36" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <!-- ₩ label on peak -->
+      <rect x="455" y="10" width="80" height="44" rx="6" fill="#0d1a36"/>
+      <text x="495" y="44" text-anchor="middle" font-size="32" font-weight="900" fill="#ff9a3d">+7%</text>
+    </svg>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom-strip">
+    <div class="b-sub">흔들리지 않는 현금흐름의 원칙<br><span style="color:#fff;font-weight:800">6장에 담은 사색</span></div>
+    <div class="b-meta">
+      <div class="b-author">신민구<span class="by">지음</span></div>
+      <div class="b-pub">DIVIDEND INSIGHT<span class="small">배당투자 시리즈 · III</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

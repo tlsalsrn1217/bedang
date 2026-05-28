@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>배당투자 AI 가이드 — VOL.II</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#222;font-family:'Pretendard',-apple-system,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:40px 0;min-height:100vh}
+  .cover{
+    width:1600px;height:2560px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(70% 50% at 50% 35%, #1a7048 0%, transparent 70%),
+      linear-gradient(170deg,#0d5836 0%,#072818 100%);
+    color:#fff9eb;
+    box-shadow:0 40px 90px rgba(0,0,0,.6);
+    display:flex;flex-direction:column;
+  }
+  .top-strip{
+    height:220px;background:#0a0a0a;color:#fff9eb;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 70px;flex-shrink:0;border-bottom:6px solid #e8b430;
+  }
+  .top-copy{font-size:48px;font-weight:800;letter-spacing:-.025em;line-height:1.2}
+  .top-copy .hl{color:#e8b430;font-weight:900}
+  .top-copy .num{color:#e8b430;font-weight:900;font-size:64px}
+  .seal{
+    width:170px;height:170px;border-radius:50%;
+    background:linear-gradient(140deg,#f0c84a,#c98e1a);color:#0a0a0a;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:900;letter-spacing:-.02em;line-height:1.05;
+    border:6px solid #fff9eb;box-shadow:0 8px 0 rgba(0,0,0,.3);
+    transform:rotate(-9deg);flex-shrink:0;
+  }
+  .seal .s1{font-size:24px;font-weight:900;margin-bottom:4px;letter-spacing:.08em}
+  .seal .s2{font-size:38px;font-weight:900;line-height:1}
+  .seal .s3{font-size:18px;margin-top:4px;letter-spacing:.1em}
+  .body{flex:1;padding:80px 80px 0;display:flex;flex-direction:column;position:relative}
+  .tag{
+    display:inline-block;align-self:flex-start;
+    background:#e8b430;color:#0a0a0a;
+    font-size:34px;font-weight:900;letter-spacing:-.02em;
+    padding:14px 30px;margin-bottom:50px;
+    transform:skew(-6deg);
+  }
+  .tag span{display:inline-block;transform:skew(6deg)}
+  .title{display:flex;flex-direction:column;align-items:flex-start;line-height:.88;letter-spacing:-.07em;font-weight:900}
+  .t-bg{
+    font-size:340px;color:#e8b430;
+    -webkit-text-stroke:6px #0a0a0a;
+    text-shadow:14px 14px 0 rgba(0,0,0,.7);
+    margin-bottom:24px;
+  }
+  .t-mid{
+    font-size:300px;color:#fff9eb;
+    margin-left:30px;margin-bottom:30px;
+    letter-spacing:-.04em;
+  }
+  .t-block{
+    font-size:240px;color:#e8b430;
+    background:#0a0a0a;
+    padding:18px 40px 30px;
+    line-height:.9;
+    border-top:6px solid #e8b430;
+    border-bottom:6px solid #e8b430;
+  }
+  .benefit{
+    margin-top:60px;background:#e8b430;color:#0a0a0a;
+    padding:38px 50px;border-left:14px solid #0a0a0a;
+    display:flex;align-items:center;gap:36px;
+  }
+  .b-lbl{
+    font-size:24px;font-weight:900;color:#0a0a0a;letter-spacing:.18em;
+    writing-mode:vertical-rl;text-orientation:upright;
+    border-right:3px solid #0a0a0a;padding-right:18px;
+  }
+  .b-txt{font-size:46px;font-weight:900;letter-spacing:-.03em;line-height:1.25}
+  .b-txt .accent{color:#0d5836;background:#0a0a0a;padding:2px 14px}
+  .illust{
+    position:absolute;right:60px;bottom:380px;width:560px;
+    pointer-events:none;
+  }
+  .bottom-strip{
+    height:300px;background:#0a0a0a;color:#fff9eb;padding:36px 80px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    border-top:6px solid #e8b430;flex-shrink:0;
+  }
+  .b-sub{font-size:38px;font-weight:700;color:#e8b430;letter-spacing:-.02em;line-height:1.35}
+  .b-meta{display:flex;justify-content:space-between;align-items:flex-end}
+  .b-author{font-size:60px;font-weight:900;letter-spacing:-.03em}
+  .b-author .by{font-size:32px;font-weight:600;opacity:.7;margin-left:14px}
+  .b-pub{font-size:24px;font-weight:700;color:#e8b430;letter-spacing:.16em;text-align:right;line-height:1.5}
+  .b-pub .small{display:block;color:#fff9eb;opacity:.55;font-size:18px;font-weight:600;letter-spacing:.1em;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="cover">
+  <div class="top-strip">
+    <div class="top-copy"><span class="hl">AI가 1초 만에</span><br>종목의 <span class="hl">진짜 가치</span>를 알려준다</div>
+    <div class="seal">
+      <div class="s1">★ VOL.II ★</div>
+      <div class="s2">AI</div>
+      <div class="s3">POWERED</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="tag"><span>8장에 담은 AI 활용 완전 정복</span></div>
+    <h1 class="title">
+      <span class="t-bg">배당</span>
+      <span class="t-mid">AI</span>
+      <span class="t-block">가이드</span>
+    </h1>
+
+    <div class="benefit">
+      <div class="b-lbl">KEY</div>
+      <div class="b-txt">
+        AI가 알려주는<br>
+        <span class="accent">종목의 진짜 가치</span>
+      </div>
+    </div>
+
+    <!-- 일러스트: AI 노드 네트워크 + 차트 -->
+    <svg class="illust" viewBox="0 0 560 380">
+      <!-- baseline -->
+      <line x1="20" y1="350" x2="540" y2="350" stroke="#e8b430" stroke-width="5" stroke-linecap="round"/>
+      <!-- chart line -->
+      <polyline points="40,310 130,270 220,200 310,210 400,120 490,60" stroke="#fff9eb" stroke-width="8" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="14 10" opacity=".5"/>
+      <!-- AI nodes (network) -->
+      <g stroke="#0a0a0a" stroke-width="5">
+        <line x1="120" y1="240" x2="240" y2="160"/>
+        <line x1="120" y1="240" x2="240" y2="280"/>
+        <line x1="240" y1="160" x2="380" y2="120"/>
+        <line x1="240" y1="160" x2="380" y2="230"/>
+        <line x1="240" y1="280" x2="380" y2="230"/>
+        <line x1="380" y1="120" x2="490" y2="170"/>
+        <line x1="380" y1="230" x2="490" y2="170"/>
+      </g>
+      <!-- nodes -->
+      <circle cx="120" cy="240" r="32" fill="#fff9eb" stroke="#0a0a0a" stroke-width="6"/>
+      <circle cx="240" cy="160" r="38" fill="#e8b430" stroke="#0a0a0a" stroke-width="6"/>
+      <circle cx="240" cy="280" r="32" fill="#fff9eb" stroke="#0a0a0a" stroke-width="6"/>
+      <circle cx="380" cy="120" r="32" fill="#fff9eb" stroke="#0a0a0a" stroke-width="6"/>
+      <circle cx="380" cy="230" r="38" fill="#e8b430" stroke="#0a0a0a" stroke-width="6"/>
+      <circle cx="490" cy="170" r="48" fill="#0a0a0a" stroke="#e8b430" stroke-width="6"/>
+      <!-- AI text inside main node -->
+      <text x="490" y="184" text-anchor="middle" font-size="36" font-weight="900" fill="#e8b430">AI</text>
+      <!-- spark on inner nodes -->
+      <text x="240" y="172" text-anchor="middle" font-size="30" font-weight="900" fill="#0a0a0a">₩</text>
+      <text x="380" y="244" text-anchor="middle" font-size="30" font-weight="900" fill="#0a0a0a">₩</text>
+    </svg>
+  </div>
+
+  <div class="bottom-strip">
+    <div class="b-sub">AI와 함께하는 똑똑한 배당투자<br><span style="color:#fff9eb;font-weight:800">8장에 담은 전체 기능</span></div>
+    <div class="b-meta">
+      <div class="b-author">신민구<span class="by">지음</span></div>
+      <div class="b-pub">DIVIDEND × AI<span class="small">배당투자 시리즈 · II</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>배당투자 인사이트 — 시안 A · 핑크 + 블랙</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#222;font-family:'Pretendard',-apple-system,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:40px 0;min-height:100vh}
+  .cover{
+    width:1600px;height:2560px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(80% 60% at 50% 35%, #ff6e8a 0%, transparent 70%),
+      linear-gradient(170deg,#ff4f73 0%,#d72a55 100%);
+    color:#0d0d10;
+    box-shadow:0 40px 90px rgba(0,0,0,.6);
+    display:flex;flex-direction:column;
+  }
+  /* TOP STRIP — hooking copy */
+  .top-strip{
+    height:220px;background:#0d0d10;color:#fff;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 70px;flex-shrink:0;border-bottom:6px solid #ffd83d;
+  }
+  .top-copy{font-size:48px;font-weight:800;letter-spacing:-.025em;line-height:1.2}
+  .top-copy .hl{color:#ffd83d;font-weight:900}
+  .top-copy .num{color:#ff4f73;font-weight:900;font-size:60px}
+  .seal{
+    width:170px;height:170px;border-radius:50%;background:#ffd83d;color:#0d0d10;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:900;letter-spacing:-.02em;line-height:1.05;
+    border:6px solid #fff;box-shadow:0 8px 0 rgba(0,0,0,.25);
+    transform:rotate(-9deg);flex-shrink:0;
+  }
+  .seal .s1{font-size:22px;letter-spacing:.2em;margin-bottom:4px}
+  .seal .s2{font-size:34px;font-weight:900}
+  .seal .s3{font-size:18px;margin-top:4px;letter-spacing:.05em}
+  /* BODY */
+  .body{flex:1;padding:80px 80px 0;display:flex;flex-direction:column;position:relative}
+  .tag{
+    display:inline-block;align-self:flex-start;
+    background:#0d0d10;color:#ffd83d;
+    font-size:34px;font-weight:800;letter-spacing:-.02em;
+    padding:14px 30px;margin-bottom:50px;
+  }
+  /* TITLE */
+  .title{display:flex;flex-direction:column;align-items:flex-start;line-height:.88;letter-spacing:-.07em;font-weight:900}
+  .t-bg{
+    font-size:380px;color:#fff;
+    -webkit-text-stroke:8px #0d0d10;
+    text-shadow:18px 18px 0 #0d0d10;
+    margin-bottom:30px;
+  }
+  .t-mid{
+    font-size:260px;color:#0d0d10;
+    margin-left:30px;margin-bottom:30px;
+  }
+  .t-block{
+    font-size:240px;color:#ffd83d;
+    background:#0d0d10;
+    padding:18px 40px 30px;
+    line-height:.9;
+  }
+  /* BENEFIT */
+  .benefit{
+    margin-top:60px;background:#0d0d10;color:#fff;
+    padding:38px 50px;border-left:14px solid #ffd83d;
+    display:flex;align-items:center;gap:36px;
+  }
+  .b-lbl{
+    font-size:24px;font-weight:900;color:#ffd83d;letter-spacing:.18em;
+    writing-mode:vertical-rl;text-orientation:upright;
+    border-right:3px solid #ffd83d;padding-right:18px;
+  }
+  .b-txt{font-size:46px;font-weight:900;letter-spacing:-.03em;line-height:1.25}
+  .b-txt .accent{color:#ff8aa3}
+  /* ILLUST */
+  .illust{
+    position:absolute;right:60px;bottom:380px;width:520px;
+    pointer-events:none;
+  }
+  /* BOTTOM STRIP */
+  .bottom-strip{
+    height:300px;background:#0d0d10;color:#fff;padding:36px 80px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    border-top:6px solid #ffd83d;flex-shrink:0;
+  }
+  .b-sub{font-size:38px;font-weight:700;color:#ffb8c5;letter-spacing:-.02em;line-height:1.35}
+  .b-meta{display:flex;justify-content:space-between;align-items:flex-end}
+  .b-author{font-size:60px;font-weight:900;letter-spacing:-.03em}
+  .b-author .by{font-size:32px;font-weight:600;opacity:.7;margin-left:14px}
+  .b-pub{font-size:24px;font-weight:700;color:#ffd83d;letter-spacing:.16em;text-align:right;line-height:1.5}
+  .b-pub .small{display:block;color:#fff;opacity:.55;font-size:18px;font-weight:600;letter-spacing:.1em;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="cover">
+  <!-- TOP -->
+  <div class="top-strip">
+    <div class="top-copy">평생 월 <span class="num">300</span><span class="hl">만원</span>,<br>통장에 꽂히는 <span class="hl">배당의 마법</span></div>
+    <div class="seal">
+      <div class="s1">★★★★★</div>
+      <div class="s2">베스트</div>
+      <div class="s3">SELLER</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+    <div class="tag">6장에 담은 현금흐름의 원칙</div>
+    <h1 class="title">
+      <span class="t-bg">배당</span>
+      <span class="t-mid">투자</span>
+      <span class="t-block">인사이트</span>
+    </h1>
+
+    <div class="benefit">
+      <div class="b-lbl">KEY</div>
+      <div class="b-txt">
+        월급처럼 들어오는<br>
+        <span class="accent">평생 현금흐름의 비밀</span>
+      </div>
+    </div>
+
+    <!-- 일러스트: 코인 스택 + 화살표 -->
+    <svg class="illust" viewBox="0 0 520 380">
+      <!-- 화살표 트레일 -->
+      <path d="M 30 340 Q 180 320 230 200 T 470 30" stroke="#0d0d10" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="0"/>
+      <!-- 화살촉 -->
+      <path d="M 470 30 L 425 70 M 470 30 L 430 85" stroke="#0d0d10" stroke-width="14" fill="none" stroke-linecap="round"/>
+      <circle cx="475" cy="30" r="22" fill="#ffd83d" stroke="#0d0d10" stroke-width="6"/>
+      <!-- 코인 스택 좌 -->
+      <g transform="translate(80,310)">
+        <ellipse cx="0" cy="0" rx="55" ry="16" fill="#ffd83d" stroke="#0d0d10" stroke-width="5"/>
+        <ellipse cx="0" cy="-22" rx="55" ry="16" fill="#ffd83d" stroke="#0d0d10" stroke-width="5"/>
+        <ellipse cx="0" cy="-44" rx="55" ry="16" fill="#fff" stroke="#0d0d10" stroke-width="5"/>
+        <text x="0" y="-39" text-anchor="middle" font-size="26" font-weight="900" fill="#0d0d10">₩</text>
+      </g>
+      <!-- 코인 스택 중 -->
+      <g transform="translate(190,290)">
+        <ellipse cx="0" cy="0" rx="55" ry="16" fill="#ffd83d" stroke="#0d0d10" stroke-width="5"/>
+        <ellipse cx="0" cy="-22" rx="55" ry="16" fill="#ffd83d" stroke="#0d0d10" stroke-width="5"/>
+        <ellipse cx="0" cy="-44" rx="55" ry="16" fill="#ffd83d" stroke="#0d0d10" stroke-width="5"/>
+        <ellipse cx="0" cy="-66" rx="55" ry="16" fill="#fff" stroke="#0d0d10" stroke-width="5"/>
+        <text x="0" y="-61" text-anchor="middle" font-size="26" font-weight="900" fill="#0d0d10">₩</text>
+      </g>
+      <!-- 코인 스택 우 -->
+      <g transform="translate(300,250)">
+        <ellipse cx="0" cy="0" rx="55" ry="16" fill="#ffd83d" stroke="#0d0d10" stroke-width="5"/>
+        <ellipse cx="0" cy="-22" rx="55" ry="16" fill="#ffd83d" stroke="#0d0d10" stroke-width="5"/>
+        <ellipse cx="0" cy="-44" rx="55" ry="16" fill="#ffd83d" stroke="#0d0d10" stroke-width="5"/>
+        <ellipse cx="0" cy="-66" rx="55" ry="16" fill="#ffd83d" stroke="#0d0d10" stroke-width="5"/>
+        <ellipse cx="0" cy="-88" rx="55" ry="16" fill="#fff" stroke="#0d0d10" stroke-width="5"/>
+        <text x="0" y="-83" text-anchor="middle" font-size="26" font-weight="900" fill="#0d0d10">₩</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom-strip">
+    <div class="b-sub">흔들리지 않는 현금흐름의 원칙<br><span style="color:#fff;font-weight:800">6장에 담은 사색</span></div>
+    <div class="b-meta">
+      <div class="b-author">신민구<span class="by">지음</span></div>
+      <div class="b-pub">DIVIDEND INSIGHT<span class="small">배당투자 시리즈 · III</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
