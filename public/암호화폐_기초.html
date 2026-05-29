@@ -367,6 +367,9 @@
   .info-formula-chart{width:100%}
   .info-formula-chart svg{width:100%;height:auto;display:block}
   .info-formula-op{align-self:center;text-align:center;font-size:20px;font-weight:800;color:var(--dim);letter-spacing:-.01em;font-family:'Pretendard',sans-serif}
+  /* 어원·단어 합성 표시 — info-formula 차트 자리에 큰 한글 단어 한 줄 */
+  .info-formula-word{font-size:34px;font-weight:800;color:var(--soft);letter-spacing:-.01em;line-height:1.05;padding:8px 0 4px;text-align:center;font-family:'Pretendard',sans-serif}
+  .info-formula-col.col-final .info-formula-word{color:var(--accent-soft)}
   @media(max-width:720px){
     .info-formula{grid-template-columns:1fr;gap:6px}
     .info-formula-op{padding:2px 0}
@@ -551,8 +554,99 @@
         <span class="ch-subtitle">안 보면 후회하는 비트코인 총 정리</span>
       </div>
       <div class="ch-body">
+
         <h3>기존 금융 시스템의 한계와 비트코인의 탄생 배경</h3>
-        <p class="ph">중앙은행 중심 체제의 균열 위에서 태어난 비트코인 — 원고 입력 위치</p>
+
+        <p class="lead">21세기 현대 경제사를 논할 때 결코 빼놓을 수 없는 사건이 있습니다. 바로 2008년에 일어난 '리먼 브라더스 파산 사태'입니다.</p>
+
+        <h4>무너지지 않을 것이라는 믿음</h4>
+
+        <p>그 무렵 미국을 비롯한 전 세계 사람들은 전통적인 금융 시스템, 즉 은행과 정부 기관은 절대 무너지지 않을 것이라고 믿었습니다. 이 맹신을 바탕으로 미국에서는 위험한 금융 상품들이 마구잡이로 거래되었습니다. 하지만 흔들리지 않을 것이라 여겨졌던 미국 4대 투자 은행 중 하나인 리먼 브라더스가 파산하면서, 그 여파는 미국을 넘어 전 세계의 주식과 부동산 시장을 연쇄적으로 끌어내렸고, 이는 21세기 최악의 금융 위기로 기록되었습니다.</p>
+
+        <figure class="figure">
+          <div class="info">
+            <div class="info-title">2008년 리먼 사태가 깨운 질문, 그리고 비트코인의 탄생</div>
+            <div class="info-timeline">
+              <div class="info-tl-step">
+                <div class="info-tl-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 21 7 3 7"/><line x1="3" y1="7" x2="3" y2="21"/><line x1="21" y1="7" x2="21" y2="21"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="7" y1="11" x2="7" y2="17"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="17" y1="11" x2="17" y2="17"/></svg>
+                </div>
+                <div class="info-tl-num">2008년 이전</div>
+                <div class="info-tl-title">신뢰의 시대</div>
+                <div class="info-tl-desc">은행과 정부에 모든 자산을 맡기는 것이 자연스러웠다</div>
+              </div>
+              <div class="info-tl-connect"></div>
+              <div class="info-tl-step">
+                <div class="info-tl-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div class="info-tl-num">2008년</div>
+                <div class="info-tl-title">신뢰의 균열</div>
+                <div class="info-tl-desc">리먼 파산으로 중앙 기관에 대한 절대 신뢰가 흔들렸다</div>
+              </div>
+              <div class="info-tl-connect"></div>
+              <div class="info-tl-step">
+                <div class="info-tl-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </div>
+                <div class="info-tl-num">2009년</div>
+                <div class="info-tl-title">새로운 패러다임</div>
+                <div class="info-tl-desc">비트코인이 등장해 신뢰 없이 작동하는 화폐가 시작되었다</div>
+              </div>
+            </div>
+          </div>
+          <figcaption class="info-caption">중앙 기관에 대한 절대적 신뢰가 흔들린 자리에서, <b>신뢰 없이 작동하는 새로운 화폐</b>가 태어났다.</figcaption>
+        </figure>
+
+        <p>이 사건은 단순히 거대 기업 하나의 파산으로 끝나지 않았습니다. 수많은 평범한 사람들의 자산이 공중분해되는 것을 목격하면서, 대중의 마음속에는 근본적인 의구심이 싹트기 시작했습니다. "지금까지 우리가 굳게 믿고 자산을 맡겨 왔던 전통적인 금융 시스템이 과연 완벽한가", "정말로 사람이나 거대 기관을 무조건적으로 신뢰해도 되는가"라는 뼈아픈 질문을 던지게 된 것입니다. 중앙 통제 기관에 대한 맹신이 개인의 자산에 얼마나 큰 위험을 초래할 수 있는지, 인류가 절실히 깨달은 순간이었습니다.</p>
+
+        <h4>신뢰 없이 작동하는 새로운 화폐</h4>
+
+        <p>바로 이 시기에, 금이 가버린 전통 금융 시스템의 한계에 해답을 제시하듯 완전히 새로운 패러다임이 세상에 등장합니다. 그것이 바로 익히 들어보셨을 '비트코인(Bitcoin)'입니다. 비트코인은 은행이나 정부 같은 거대한 중앙 기관의 개입이나 통제 없이도, 시스템 스스로 안전하게 작동하도록 설계된 새로운 디지털 화폐 시스템입니다. 누군가를 신뢰해야만 굴러가던 금융에서, <strong>기관을 믿지 않고도 개인과 개인이 직접 거래할 수 있는</strong> 새로운 시대의 막이 오른 것입니다.</p>
+
+        <h4>암호화폐, 그 이름의 어원</h4>
+
+        <p>우리는 비트코인을 비롯한 새로운 형태의 돈을 흔히 '암호화폐(Cryptocurrency)'라고 부릅니다. 이 단어는 암호화를 뜻하는 크립토(Crypto)와 화폐를 뜻하는 커런시(Currency)가 결합해 만들어진 합성어, '크립토커런시'에서 유래했습니다. 고도의 암호화 기술을 바탕으로 정부나 은행의 보증 없이도 자산을 거래할 수 있도록 만든 화폐를 뜻하는 말입니다. 앞으로 뉴스나 경제 서적에서 '크립토'라는 단어를 마주하게 된다면, 자연스럽게 암호화폐와 관련된 이야기라는 것을 떠올리시면 됩니다.</p>
+
+        <figure class="figure">
+          <div class="info">
+            <div class="info-title">암호화폐(Cryptocurrency)라는 이름의 뿌리</div>
+            <div class="info-formula">
+              <div class="info-formula-col">
+                <div class="info-formula-label">암호화</div>
+                <div class="info-formula-name">Crypto</div>
+                <div class="info-formula-word">크립토</div>
+              </div>
+              <div class="info-formula-op">+</div>
+              <div class="info-formula-col">
+                <div class="info-formula-label">화폐</div>
+                <div class="info-formula-name">Currency</div>
+                <div class="info-formula-word">커런시</div>
+              </div>
+              <div class="info-formula-op">=</div>
+              <div class="info-formula-col col-final">
+                <div class="info-formula-label">암호화폐</div>
+                <div class="info-formula-name">Cryptocurrency</div>
+                <div class="info-formula-word">크립토커런시</div>
+              </div>
+            </div>
+          </div>
+          <figcaption class="info-caption">암호화(Crypto)와 화폐(Currency)가 결합해 만들어진 단어, <b>크립토커런시</b>.</figcaption>
+        </figure>
+
+        <h4>사실상의 최초, 비트코인</h4>
+
+        <p>사실 역사를 엄밀하게 따져 보면, 비트코인이 세상에 등장한 '완전한 최초'의 암호화폐인 것은 아닙니다. 비트코인이 탄생하기 이전에도 '암호화폐의 아버지'라 불리는 데이비드 차움의 디지캐시(DigiCash)를 비롯해, 비머니(B-Money), 비트골드(Bit Gold) 등 비슷한 철학을 가진 초기 개념들이 꾸준히 존재해 왔습니다.</p>
+
+        <p>그러나 이전의 시도들이 개념이나 실험에 머물렀던 반면, 현실 세계에서 성공적으로 작동하며 전 세계 금융 시장에 실질적이고 거대한 영향을 미친 최초의 사례는 비트코인이 유일합니다. 그렇기에 실전 투자의 관점에서는 복잡한 과거의 역사와 기술을 모두 외우기보다, '최초의 암호화폐는 비트코인이며, 현재 시장에서 암호화폐와 코인은 사실상 같은 의미로 쓰인다'라고 직관적으로 이해하시는 편이 좋습니다. 비트코인은 단순한 기술적 발명품을 넘어, <strong>중앙화된 기관을 거치지 않고도 우리의 자산을 안전하게 보호하고 굴릴 수 있다</strong>는 금융의 선언이었습니다.</p>
+
+        <div class="callout">
+          <div class="callout-title">이 절의 핵심, 다시 정리하기</div>
+          <p><strong>리먼 브라더스 파산.</strong> 2008년 거대 금융 기관의 붕괴는 중앙화된 시스템에 대한 절대적 신뢰를 흔들었다.</p>
+          <p><strong>비트코인의 탄생.</strong> 은행이나 정부 같은 중앙 기관을 거치지 않고도, 개인과 개인이 직접 거래할 수 있는 새로운 화폐 시스템이 등장했다.</p>
+          <p><strong>암호화폐라는 이름.</strong> 암호화(Crypto)와 화폐(Currency)의 합성어. 비트코인이 시장에서 성공적으로 자리 잡으면서, 오늘날 암호화폐와 코인은 사실상 같은 의미로 통용된다.</p>
+        </div>
+
       </div>
     </section>
     <section class="chapter" id="ch-ch1-2">
