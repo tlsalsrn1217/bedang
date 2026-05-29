@@ -54,6 +54,30 @@ function buildExplainPrompt(stock, marketBaseline) {
   const mkt   = marketBaseline; // 시장 평균 (KOSPI 시드 표본)
   const indNm = ind?.name || '동종 업종';
 
+  // 성장 등급 블록 (KIS 다년치 손익 기반, 종합점수와 별도)
+  const gg = stock.growthGrade ? {
+    grade:      stock.growthGrade,
+    score:      stock.growthScore,
+    confidence: stock.growthConfidence,
+    bd:         stock.growthBreakdown || {},
+    flags:      stock.growthFlags || [],
+  } : null;
+  const growthBlock = gg ? `
+[성장 등급 — 종합점수와 별도 지표 (KIS 다년치 손익 기반)]
+· 등급: ${gg.grade}  · 점수: ${gg.score ?? '-'}/100  · 신뢰도: ${gg.confidence || '-'}
+· 순이익 3년 CAGR: ${gg.bd.netIncome?.cagr != null ? (gg.bd.netIncome.cagr >= 0 ? '+' : '') + gg.bd.netIncome.cagr.toFixed(2) + '%/년' : '-'}  → 점수 ${gg.bd.netIncome?.score ?? '-'}
+· 매출 3년 CAGR: ${gg.bd.sales?.cagr != null ? (gg.bd.sales.cagr >= 0 ? '+' : '') + gg.bd.sales.cagr.toFixed(2) + '%/년' : '-'}  → 점수 ${gg.bd.sales?.score ?? '-'}
+· 배당 (전년/4년평균 비율): ${gg.bd.dividend?.ratio ?? '-'}  → 점수 ${gg.bd.dividend?.score ?? '-'}
+· 플래그: ${gg.flags.length ? gg.flags.join(', ') : '없음'}` : '';
+
+  // 정성 분석 태그 (있을 때만 — 모달 진입 시 별도로 호출되므로 보통은 미주입)
+  // 정성 태그가 stock 객체에 첨부돼 있으면 활용 (server에서 옵션 주입 가능)
+  const qualTag    = stock.qualPremiumTag || null;
+  const qualBlock  = qualTag && qualTag !== 'none' ? `
+[정성 분석 태그 (사용자 별도 분석 결과)]
+· 정성 태그: ${qualTag}
+※ 정량 성장 등급(${gg?.grade || '-'})과 비교해 일치/불일치를 언급할 것.` : '';
+
   // 종목값 (PER/PBR/ROE/배당률)을 baseline과 비교
   const stockDivPc = stock.divYield != null ? stock.divYield * 100 : null;
   const baseBlock = (ind || mkt) ? `
@@ -78,14 +102,22 @@ ${mkt ? `· KOSPI 시장 평균:  PER ${fmt(mkt.per)} / PBR ${fmt(mkt.pbr)} / RO
 [배당지표] 배당률 ${pct(stock.divYield)} · 4년평균배당률 ${pct(stock.avgYield)} · 전년DPS ${stock.prevDps ?? '-'}원 · 4년평균DPS ${stock.avgDps ? Math.round(stock.avgDps) : '-'}원
 [경고] ${stock.flags && stock.flags.length ? stock.flags.join(', ') : '없음'}
 ${baseBlock}
+${growthBlock}
+${qualBlock}
 
 [해설 규칙]
 - "PER 5.77은 낮다" 같은 일반론 대신 "${indNm} 평균 대비 X% 저평가" 식으로 ★기준선 대비★ 해설할 것.
 - 표본이 시드 종목(주로 배당주)이라 시장 전체와 편향이 있을 수 있음을 한 번 언급(과장 X).
 - 단정 표현 금지 — "~한 편으로 보입니다", "~로 해석됩니다" 식 추측형.
+- ★ 성장 흐름은 별도 항목(growth_note)에서 다룰 것. 종합점수에 자동 가산되지 않는 별도 지표임을 명시.
+- 종합점수(저평가)와 성장 등급(꾸준한 개선)의 ★일치/불일치★를 자연스럽게 코멘트:
+  · 종합점수 높음 + 성장 A 계열 → "저평가 + 성장의 황금 조합으로 보입니다"
+  · 종합점수 높음 + 성장 D 계열 → "현재는 싸지만 성장이 정체된 모습이라 가치 함정 여부를 점검할 필요가 있어 보입니다"
+  · 종합점수 낮음 + 성장 A 계열 → "프리미엄을 받고 있으나 이력상 꾸준히 좋아지는 모습입니다"
+- 정성 태그(qualPremiumTag)가 있으면 정량 성장 등급과 비교해 같은 방향/어긋남을 한 문장으로 언급.
 
 반드시 아래 JSON 형식만 출력하세요. 마크다운 기호(#, *, -, \`, > 등) 절대 사용 금지. 순수 JSON만.
-{"summary":"종합점수 근거 한줄평 (1~2문장, 업종 평균 대비 위치 명시)","score_reason":"세부 점수가 높거나 낮은 이유를 기준선 비교로 설명 (2~3문장)","risks":"경고·주의 지표 해설 및 투자 시 주의사항 (없으면 '특이 경고 없음')","checkpoints":"이 종목 투자 전 직접 확인해야 할 체크리스트 2~3가지"}`;
+{"summary":"종합점수 근거 한줄평 (1~2문장, 업종 평균 대비 위치 명시)","score_reason":"세부 점수가 높거나 낮은 이유를 기준선 비교로 설명 (2~3문장)","growth_note":"성장 등급 ${gg?.grade || '-'}의 근거(순이익·매출 CAGR·배당 추이)와 종합점수와의 관계 한 단락. ${gg ? '신뢰도 ' + gg.confidence + '도 함께 언급.' : '성장 데이터 부족 시 그 사실 명시.'}","risks":"경고·주의 지표 해설 및 투자 시 주의사항 (없으면 '특이 경고 없음')","checkpoints":"이 종목 투자 전 직접 확인해야 할 체크리스트 2~3가지"}`;
 }
 
 /* ── (1-a) 해설 생성 — JSON 모드, 그라운딩 없음. marketBaseline은 KOSPI 시드 표본 평균 ── */

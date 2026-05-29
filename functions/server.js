@@ -437,11 +437,19 @@ app.get('/api/explain/:code', wrap(async (req, res) => {
 app.post('/api/explain/:code', wrap(async (req, res) => {
   const uid = getUid(req);
   if (!uid) return res.status(401).json({ error: '로그인이 필요합니다', needLogin: true });
-  const [db, baseline] = await Promise.all([load(uid), loadBaseline()]);
+  const [db, baseline, growthCache] = await Promise.all([load(uid), loadBaseline(), loadGrowthGrades()]);
   const key    = decodeURIComponent(req.params.code);
   const scored = scoreStocks(db.stocks, db.settings, baseline);
-  const stock  = scored.find(s => s.code === key || s.name === key);
-  if (!stock) return res.status(404).json({ error: '종목 없음' });
+  const stockBase  = scored.find(s => s.code === key || s.name === key);
+  if (!stockBase) return res.status(404).json({ error: '종목 없음' });
+  // 성장 등급 + (있으면) 정성 태그를 stock 객체에 첨부 → 프롬프트에 주입됨
+  const g       = (stockBase.code && growthCache?.grades?.[stockBase.code]) || null;
+  const qcached = await loadQualitative(uid, stockBase.name).catch(() => null);
+  const stock   = {
+    ...stockBase,
+    ...(g ? { growthGrade: g.grade, growthScore: g.score, growthBreakdown: g.breakdown, growthConfidence: g.confidence, growthFlags: g.flags } : {}),
+    ...(qcached?.result?.premiumTag ? { qualPremiumTag: qcached.result.premiumTag } : {}),
+  };
   try {
     const result = await explainStock(stock, undefined, baseline?.market?.kospi || null);
     const at     = new Date().toISOString();

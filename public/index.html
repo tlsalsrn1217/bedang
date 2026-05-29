@@ -2110,6 +2110,7 @@ function renderExplainBox(ex, at){
       ex.summary      ?`<div class="ex-row"><span class="ex-label">한줄평</span><span>${strip(ex.summary)}</span></div>`:'',
       // 신형 필드 (score_reason)
       ex.score_reason ?`<div class="ex-row"><span class="ex-label good">점수 근거</span><span>${strip(ex.score_reason)}</span></div>`:'',
+      ex.growth_note  ?`<div class="ex-row"><span class="ex-label info">성장 흐름</span><span>${strip(ex.growth_note)}</span></div>`:'',
       // 구형 필드 (strengths) 호환
       (!ex.score_reason&&ex.strengths)?`<div class="ex-row"><span class="ex-label good">강점</span><span>${strip(ex.strengths)}</span></div>`:'',
       ex.risks        ?`<div class="ex-row"><span class="ex-label bad">주의사항</span><span>${strip(ex.risks)}</span></div>`:'',
