@@ -13,7 +13,21 @@ const { explainStock, parseExplainRaw, recommendConfig, classifyAndCheck, classi
 const { analyzeQualitative } = require('./qualitative');
 const { searchNews } = require('./news');
 const { buildBaseline } = require('./baseline');
-const { load, save, loadQualitative, saveQualitative, loadAllQualitative, loadBaseline, saveBaseline } = require('./db');
+const { buildGrowthGrades } = require('./growth');
+const { load, save, loadQualitative, saveQualitative, loadAllQualitative, loadBaseline, saveBaseline, loadGrowthGrades, saveGrowthGrades } = require('./db');
+
+// ── GICS 업종 → 섹터 매핑 ─────────────────────────────────────────
+const CATEGORY_TO_SECTOR = {
+  '은행': '금융', '보험': '금융', '증권': '금융', '여신': '금융',
+  '인프라펀드': '금융', '부동산신탁': '금융', '금융서비스': '금융',
+  '복합기업': '산업재', '상사': '산업재', '운송': '산업재',
+  '철강': '소재', '화학': '소재',
+  '자동차': '경기소비재', '레저': '경기소비재', '교육': '경기소비재', '자동차판매': '경기소비재',
+  '식음료': '필수소비재', '생활용품': '필수소비재', '화장품': '필수소비재', '담배': '필수소비재',
+  '반도체': '정보기술', 'IT서비스': '정보기술',
+  '통신': '통신서비스', '광고': '통신서비스',
+  '가스': '에너지',
+};
 
 // ── JWT 유틸 (외부 패키지 없이 순수 crypto) ──────────────────────
 
@@ -157,17 +171,61 @@ function _maybeAutoRefreshBaseline(baseline) {
     .finally(() => { _baselineBuilding = false; });
 }
 
+// 성장 등급 자동 갱신 가드 (24h)
+let _growthBuilding = false;
+async function _maybeAutoRefreshGrowth(growthCache) {
+  if (_growthBuilding) return;
+  const stale = !growthCache || !growthCache.updatedAt ||
+                (Date.now() - new Date(growthCache.updatedAt).getTime() > 24 * 3600 * 1000);
+  if (!stale) return;
+  _growthBuilding = true;
+  try {
+    const db = await load(); // 공용 시드 stocks
+    const built = await buildGrowthGrades(db.stocks || []);
+    await saveGrowthGrades(built);
+    console.log('[growth] auto-refreshed', built.asOf, 'count=', built.rawCount);
+  } catch (e) {
+    console.error('[growth] auto-refresh failed:', e.message);
+  } finally {
+    _growthBuilding = false;
+  }
+}
+
 app.get('/api/stocks', wrap(async (req, res) => {
   const uid = getUid(req);
   if (uid) await seedUserIfEmpty(uid);
-  const [dbData, baseline] = await Promise.all([load(uid), loadBaseline()]);
+  const [dbData, baseline, growthCache] = await Promise.all([
+    load(uid), loadBaseline(), loadGrowthGrades(),
+  ]);
   _maybeAutoRefreshBaseline(baseline);
+  _maybeAutoRefreshGrowth(growthCache);
+
+  // sector/industry 누락 종목 마이그레이션 (과거 저장분 보정)
+  let sectorChanged = false;
+  dbData.stocks.forEach(s => {
+    const ind = s.category || s.industry || '기타';
+    if (!s.sector && CATEGORY_TO_SECTOR[ind]) {
+      s.sector   = CATEGORY_TO_SECTOR[ind];
+      s.industry = s.industry || ind;
+      sectorChanged = true;
+    }
+  });
+  if (sectorChanged && uid) save({ stocks: dbData.stocks }, uid).catch(() => {});
+
+  // 종합점수는 그대로 (scoring.js 무수정), 응답 단계에서 성장 등급만 첨부
   const scored = applyGrades(scoreStocks(dbData.stocks, dbData.settings, baseline));
+  const gradesByCode = growthCache?.grades || {};
+  const stocksOut = scored.map(s => {
+    const g = (s.code && gradesByCode[s.code]) || null;
+    return g ? { ...s, growthGrade: g.grade, growthScore: g.score, growthBreakdown: g.breakdown, growthConfidence: g.confidence, growthFlags: g.flags } : s;
+  });
+
   res.json({
-    stocks:       scored,
+    stocks:       stocksOut,
     lastRefresh:  dbData.lastRefresh,
     marketOpen:   isMarketOpen(),
     baselineAsOf: baseline?.asOf || null,
+    growthAsOf:   growthCache?.asOf || null,
   });
 }));
 
@@ -175,6 +233,36 @@ app.get('/api/stocks', wrap(async (req, res) => {
 app.get('/api/baseline', wrap(async (req, res) => {
   const baseline = await loadBaseline();
   res.json({ baseline });
+}));
+
+// 성장 등급 캐시 조회
+app.get('/api/growth', wrap(async (req, res) => {
+  const g = await loadGrowthGrades();
+  res.json({ growth: g });
+}));
+
+// 성장 등급 수동 갱신 (로그인 사용자)
+app.post('/api/growth/refresh', wrap(async (req, res) => {
+  const uid = getUid(req);
+  if (!uid) return res.status(401).json({ error: '로그인 필요' });
+  try {
+    const db    = await load();
+    const built = await buildGrowthGrades(db.stocks || []);
+    await saveGrowthGrades(built);
+    res.json({
+      ok:        true,
+      asOf:      built.asOf,
+      rawCount:  built.rawCount,
+      // 분포 요약 — UI 검증용
+      summary:   Object.values(built.grades).reduce((m, g) => {
+        m[g.grade] = (m[g.grade] || 0) + 1;
+        return m;
+      }, {}),
+    });
+  } catch (e) {
+    console.error('[growth] refresh error:', e.message);
+    res.status(500).json({ error: String(e.message || e) });
+  }
 }));
 
 // 기준선 수동 갱신 (로그인 사용자면 누구나, 일 1회 권장)
@@ -243,7 +331,9 @@ app.post('/api/stocks', wrap(async (req, res) => {
   try {
     clearCache();
     const data = await fetchMetrics(code);
-    db.stocks.push({ name, code, category: category || '기타',
+    const ind = category || '기타';
+    const sec = CATEGORY_TO_SECTOR[ind] || null;
+    db.stocks.push({ name, code, category: ind, industry: ind, sector: sec,
       price: data.price, per: data.per, pbr: data.pbr, roe: data.roe, mcap: data.mcap });
     await save({ stocks: db.stocks }, uid);
     res.json({ ok: true });
@@ -370,7 +460,7 @@ const CHART_CACHE_TTL = 1000 * 60 * 60 * 6; // 6시간
 app.get('/api/chart/:code', wrap(async (req, res) => {
   const code   = decodeURIComponent(req.params.code);
   const preset = (req.query.preset || '1D').toUpperCase();
-  const VALID  = new Set(['1M','3M','1Y','3Y','5Y','ALL']);
+  const VALID  = new Set(['1D','1W','2W','1M','3M','1Y','3Y','5Y','ALL']);
   if (!VALID.has(preset)) return res.status(400).json({ error: '유효하지 않은 preset' });
   if (!code) return res.status(400).json({ error: '종목코드 필요' });
 

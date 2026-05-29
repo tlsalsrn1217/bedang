@@ -109,6 +109,18 @@ async function loadAllQualitative(uid) {
   return out;
 }
 
+// ── 성장 등급 캐시 (전 사용자 공유, appData/growth_grades 단건) ─
+async function loadGrowthGrades() {
+  const db   = getFirestore();
+  const snap = await db.doc('appData/growth_grades').get();
+  return snap.exists ? snap.data() : null;
+}
+
+async function saveGrowthGrades(data) {
+  const db = getFirestore();
+  await db.doc('appData/growth_grades').set(clean(data));
+}
+
 // ── 시장·업종 기준선 (전 사용자 공유, appData 단건) ─────────────
 async function loadBaseline() {
   const db   = getFirestore();
@@ -121,4 +133,4 @@ async function saveBaseline(data) {
   await db.doc('appData/baseline').set(clean(data));
 }
 
-module.exports = { load, save, loadQualitative, saveQualitative, loadAllQualitative, loadBaseline, saveBaseline };
+module.exports = { load, save, loadQualitative, saveQualitative, loadAllQualitative, loadBaseline, saveBaseline, loadGrowthGrades, saveGrowthGrades };
