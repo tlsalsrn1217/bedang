@@ -300,13 +300,32 @@ async function fetchAndGradeMany(stocks, concurrency = 5) {
 
 /* ── (5) 캐시 빌더 (server.js에서 호출) ─────────────────────── */
 async function buildGrowthGrades(stocks) {
-  const grades = await fetchAndGradeMany(stocks, 5);
+  const { fetchAndGradeManyQuality } = require('./quality');
+  // 1) 성장 등급 + riskFlags 산출
+  const growthResults = await fetchAndGradeMany(stocks, 5);
+  // 2) 우량주 등급 산출 (성장 riskFlags를 함께 활용)
+  const qualityResults = await fetchAndGradeManyQuality(stocks, growthResults, 5);
+  // 3) 종목별로 두 결과 병합
+  const grades = {};
+  for (const s of stocks) {
+    if (!s.code) continue;
+    const g = growthResults[s.code] || {};
+    const q = qualityResults[s.code] || {};
+    grades[s.code] = {
+      ...g,
+      // quality는 별도 네임스페이스로 (UI에서 d.qualityGrade 등으로 접근)
+      qualityGrade:      q.grade ?? 'N/A',
+      qualityScore:      q.score ?? null,
+      qualityBreakdown:  q.breakdown ?? null,
+      qualityConfidence: q.confidence ?? 'none',
+    };
+  }
   return {
     asOf:       new Date().toISOString().slice(0, 10),
     updatedAt:  new Date().toISOString(),
     grades,
     rawCount:   Object.keys(grades).length,
-    source:     'KIS income-statement (FHKST66430200) + prevDps/avgDps 근사',
+    source:     'KIS income-statement + profit-ratio + stability-ratio',
   };
 }
 

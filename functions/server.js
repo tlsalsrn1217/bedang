@@ -100,14 +100,8 @@ async function seedUserIfEmpty(uid) {
 
 // ── 앱 ────────────────────────────────────────────────────────────
 
-function calcGrade(score, flags) {
-  if (score >= 65 && (!flags || flags.length === 0)) return 'A';
-  if (score >= 45) return 'B';
-  return 'C';
-}
-function applyGrades(stocks) {
-  return stocks.map(s => ({ ...s, grade: calcGrade(s.score, s.flags) }));
-}
+// 기존 grade(A/B/C)는 우량주 등급(quality.js)으로 대체됨. applyGrades는 호환을 위해 유지하되 quality에서 채움.
+function applyGrades(stocks) { return stocks; }
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
@@ -175,13 +169,16 @@ function _maybeAutoRefreshBaseline(baseline) {
 let _growthBuilding = false;
 async function _maybeAutoRefreshGrowth(growthCache) {
   if (_growthBuilding) return;
-  // 새 필드(riskFlags)가 캐시에 한 종목도 없으면 구버전 → 즉시 재빌드
-  const hasRiskField = growthCache?.grades
+  // 새 필드 마이그레이션 체크 — riskFlags 또는 qualityGrade 없으면 구버전 → 즉시 재빌드
+  const hasRiskField   = growthCache?.grades
     ? Object.values(growthCache.grades).some(g => g && Array.isArray(g.riskFlags))
+    : false;
+  const hasQualityField = growthCache?.grades
+    ? Object.values(growthCache.grades).some(g => g && g.qualityGrade !== undefined)
     : false;
   const stale = !growthCache || !growthCache.updatedAt ||
                 (Date.now() - new Date(growthCache.updatedAt).getTime() > 24 * 3600 * 1000) ||
-                !hasRiskField;
+                !hasRiskField || !hasQualityField;
   if (!stale) return;
   _growthBuilding = true;
   try {
@@ -226,7 +223,12 @@ app.get('/api/stocks', wrap(async (req, res) => {
       growthGrade: g.grade, growthScore: g.score, growthBreakdown: g.breakdown,
       growthConfidence: g.confidence, growthFlags: g.flags,
       riskFlags: g.riskFlags || [], riskMeta: g.riskMeta || {},
-    } : s;
+      // 우량주 등급 (기존 grade A/B/C 대체)
+      qualityGrade:      g.qualityGrade      || 'N/A',
+      qualityScore:      g.qualityScore      ?? null,
+      qualityBreakdown:  g.qualityBreakdown  || null,
+      qualityConfidence: g.qualityConfidence || 'none',
+    } : { ...s, qualityGrade: 'N/A', qualityScore: null, qualityBreakdown: null, qualityConfidence: 'none' };
   });
 
   res.json({
