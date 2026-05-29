@@ -328,4 +328,27 @@ async function fetchChart(code, preset) {
   return rows;
 }
 
-module.exports = { fetchMetrics, fetchMany, clearCache, fetchChart };
+/**
+ * 12개월 가격 변동률 — 종목별 1Y 주봉으로 (1년 전 종가) → (최근 종가) 계산.
+ * 가격 데이터 없으면 null. KIS 한도 절약을 위해 호출자가 캐시 단위로 사용.
+ */
+async function fetch12mPriceChange(code) {
+  try {
+    const rows = await fetchChart(code, '1Y'); // 주봉 ~52건
+    if (!rows || rows.length < 2) return null;
+    // 시간 오름차순으로 정렬
+    const sorted = [...rows].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const earliest = sorted[0];
+    const latest   = sorted[sorted.length - 1];
+    if (!earliest?.close || !latest?.close) return null;
+    return {
+      pct:       (latest.close - earliest.close) / earliest.close * 100,
+      from:      earliest.date,
+      to:        latest.date,
+      fromPrice: earliest.close,
+      toPrice:   latest.close,
+    };
+  } catch (_) { return null; }
+}
+
+module.exports = { fetchMetrics, fetchMany, clearCache, fetchChart, fetch12mPriceChange };

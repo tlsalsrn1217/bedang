@@ -175,8 +175,13 @@ function _maybeAutoRefreshBaseline(baseline) {
 let _growthBuilding = false;
 async function _maybeAutoRefreshGrowth(growthCache) {
   if (_growthBuilding) return;
+  // 새 필드(riskFlags)가 캐시에 한 종목도 없으면 구버전 → 즉시 재빌드
+  const hasRiskField = growthCache?.grades
+    ? Object.values(growthCache.grades).some(g => g && Array.isArray(g.riskFlags))
+    : false;
   const stale = !growthCache || !growthCache.updatedAt ||
-                (Date.now() - new Date(growthCache.updatedAt).getTime() > 24 * 3600 * 1000);
+                (Date.now() - new Date(growthCache.updatedAt).getTime() > 24 * 3600 * 1000) ||
+                !hasRiskField;
   if (!stale) return;
   _growthBuilding = true;
   try {
@@ -217,7 +222,11 @@ app.get('/api/stocks', wrap(async (req, res) => {
   const gradesByCode = growthCache?.grades || {};
   const stocksOut = scored.map(s => {
     const g = (s.code && gradesByCode[s.code]) || null;
-    return g ? { ...s, growthGrade: g.grade, growthScore: g.score, growthBreakdown: g.breakdown, growthConfidence: g.confidence, growthFlags: g.flags } : s;
+    return g ? { ...s,
+      growthGrade: g.grade, growthScore: g.score, growthBreakdown: g.breakdown,
+      growthConfidence: g.confidence, growthFlags: g.flags,
+      riskFlags: g.riskFlags || [], riskMeta: g.riskMeta || {},
+    } : s;
   });
 
   res.json({

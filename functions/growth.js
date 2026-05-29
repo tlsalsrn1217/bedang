@@ -57,11 +57,11 @@ function _num(x) {
   return Number.isFinite(n) ? n : null;
 }
 
-/* ── (1) KIS 손익계산서 호출 ─────────────────────────────────── */
-async function fetchIncomeStatement(code) {
+/* ── (1) KIS 손익계산서 호출 (연간) ──────────────────────────── */
+async function fetchIncomeStatement(code, divCls = '0') {
   const token = await _kis.getToken();
   const url = new URL(`${BASE_URL}/uapi/domestic-stock/v1/finance/income-statement`);
-  url.searchParams.set('FID_DIV_CLS_CODE',       '0'); // 0=연, 1=분기
+  url.searchParams.set('FID_DIV_CLS_CODE',       divCls); // 0=연, 1=분기
   url.searchParams.set('FID_COND_MRKT_DIV_CODE', 'J');
   url.searchParams.set('FID_INPUT_ISCD',         code);
 
@@ -208,33 +208,90 @@ function computeGrowthGrade(stock, incomeRows) {
   };
 }
 
+/* ── (3-b) 가치 함정 보조 신호 (Optional, 별도 깃발) ───────────
+ *  요구사항 6: 점수 차감 X, 깃발만 추가.
+ *   - 12개월 주가 ≤ -20% → '급락 종목'
+ *   - 최근 분기 순이익 YoY ≤ -30% → '어닝 쇼크'
+ *  분기 데이터는 KIS finance/income-statement (FID_DIV_CLS_CODE=1, 연단위 누적합산)을
+ *  사용해 최신 분기 vs 4분기 전 비교. KIS가 누적치를 줘 직전 분기 누적과의 차이로 추정.
+ */
+function _quarterYoY(quarterlyRows) {
+  if (!Array.isArray(quarterlyRows) || quarterlyRows.length < 5) return null;
+  // 오름차순(과거 → 최신)
+  const sorted = [...quarterlyRows].sort((a, b) => (a.yymm || '').localeCompare(b.yymm || ''));
+  const latest = sorted[sorted.length - 1];
+  // 4분기 전(같은 분기, 1년 전)
+  const yearAgo = sorted[sorted.length - 5];
+  if (!latest || !yearAgo) return null;
+  if (!Number.isFinite(latest.netIncome) || !Number.isFinite(yearAgo.netIncome)) return null;
+  if (yearAgo.netIncome === 0) return null;
+  // 절댓값 기준 변동률 (적자 → 흑자 전환 같은 경우도 일관되게 음/양 부호 표시)
+  return {
+    pct:  (latest.netIncome - yearAgo.netIncome) / Math.abs(yearAgo.netIncome) * 100,
+    latestPeriod: latest.yymm,
+    yearAgoPeriod: yearAgo.yymm,
+  };
+}
+
+function computeRiskFlags(price12m, quarterly) {
+  const flags = [];
+  const meta  = {};
+  if (price12m && Number.isFinite(price12m.pct)) {
+    meta.price12mPct = +price12m.pct.toFixed(1);
+    if (price12m.pct <= -20) flags.push({ kind: 'price_crash', label: '급락', detail: `12개월 ${price12m.pct.toFixed(1)}%` });
+  }
+  const yoy = _quarterYoY(quarterly || []);
+  if (yoy) {
+    meta.epsYoYPct = +yoy.pct.toFixed(1);
+    meta.epsYoYPeriod = yoy.latestPeriod;
+    if (yoy.pct <= -30) flags.push({ kind: 'earnings_shock', label: '어닝 쇼크', detail: `분기 순이익 YoY ${yoy.pct.toFixed(1)}%` });
+  }
+  return { flags, meta };
+}
+
 /* ── (4) 다종목 일괄 산출 (concurrency 5, KIS 무료 한도 안에서) ─ */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function fetchAndGradeMany(stocks, concurrency = 5) {
+  // crawler.fetch12mPriceChange는 require 순환을 피해 함수 내부에서 lazy require
+  const { fetch12mPriceChange } = require('./crawler');
   const out   = {};
   const queue = stocks.filter(s => s.code).map(s => s);
   let firstKeysLogged = false;
   async function worker() {
     while (queue.length) {
       const s = queue.shift();
+      const result = { grade: 'N/A', score: null, confidence: 'none', flags: [], breakdown: null, riskFlags: [], riskMeta: {} };
+      // 1) 연간 손익 → 성장 등급
       try {
-        const rows = await fetchIncomeStatement(s.code);
+        const rows = await fetchIncomeStatement(s.code, '0');
         if (!firstKeysLogged && rows.length > 0) {
           console.log('[growth] sample raw keys:', rows[0]._rawKeys.slice(0, 25).join(','));
           firstKeysLogged = true;
         }
-        out[s.code] = computeGrowthGrade(s, rows);
+        const g = computeGrowthGrade(s, rows);
+        Object.assign(result, g);
       } catch (e) {
         await sleep(300);
         try {
-          const rows = await fetchIncomeStatement(s.code);
-          out[s.code] = computeGrowthGrade(s, rows);
+          const rows = await fetchIncomeStatement(s.code, '0');
+          const g = computeGrowthGrade(s, rows);
+          Object.assign(result, g);
         } catch (e2) {
-          out[s.code] = { grade: 'N/A', score: null, confidence: 'none',
-            flags: [`수집 실패: ${String(e2.message || e2).slice(0, 80)}`], breakdown: null };
+          result.flags = [`수집 실패: ${String(e2.message || e2).slice(0, 80)}`];
         }
       }
+      // 2) 분기 손익 (어닝 쇼크 깃발용) — 실패 무시
+      let quarterly = [];
+      try { quarterly = await fetchIncomeStatement(s.code, '1'); } catch (_) {}
+      // 3) 12개월 가격 변동률 — 실패 무시
+      let price12m = null;
+      try { price12m = await fetch12mPriceChange(s.code); } catch (_) {}
+      // 4) 가치 함정 깃발 (점수 미반영, 별도 메타)
+      const risk = computeRiskFlags(price12m, quarterly);
+      result.riskFlags = risk.flags;
+      result.riskMeta  = risk.meta;
+      out[s.code] = result;
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, worker));
