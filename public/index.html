@@ -1417,7 +1417,8 @@ function openM(d){
               </button>
             </div>
             <div class="chart-periods">
-              <button class="cpbtn" data-preset="2W" onclick="switchChartPreset('2W',this)">일간</button>
+              <button class="cpbtn" data-preset="1D" onclick="switchChartPreset('1D',this)">일간</button>
+              <button class="cpbtn" data-preset="1W" onclick="switchChartPreset('1W',this)">주간</button>
               <button class="cpbtn" data-preset="1M" onclick="switchChartPreset('1M',this)">1개월</button>
               <button class="cpbtn active" data-preset="3M" onclick="switchChartPreset('3M',this)">3개월</button>
               <button class="cpbtn" data-preset="1Y" onclick="switchChartPreset('1Y',this)">1년</button>
@@ -1540,8 +1541,17 @@ function buildLineChart(box, perfEl, rows, preset) {
   const baseY    = py(first);
   const baseline = `<line x1="${pad.l}" y1="${baseY.toFixed(1)}" x2="${(VW-pad.r).toFixed(1)}" y2="${baseY.toFixed(1)}" stroke="var(--dim)" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.45"/>`;
 
-  // X-axis date labels — preset-aware for readability
-  function fmtDate(d) {
+  // X-axis labels — preset-aware. '1D'는 row.time(HHMMSS)을 HH:MM으로 표시.
+  const _DAY = ['일','월','화','수','목','금','토'];
+  function fmtAxis(row) {
+    if (preset === '1D' && row.time) {
+      return `${row.time.slice(0,2)}:${row.time.slice(2,4)}`;
+    }
+    const d = row.date || '';
+    if (preset === '1W') {
+      const dt = new Date(`${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`);
+      return `${d.slice(4,6)}/${d.slice(6,8)}(${_DAY[dt.getDay()]})`;
+    }
     if (preset === '2W' || preset === '1M' || preset === '3M') return `${d.slice(4,6)}/${d.slice(6,8)}`;
     if (preset === '1Y')  return `'${d.slice(2,4)}.${d.slice(4,6)}`;
     if (preset === '3Y' || preset === '5Y') return `${d.slice(0,4)}.${d.slice(4,6)}`;
@@ -1549,7 +1559,7 @@ function buildLineChart(box, perfEl, rows, preset) {
   }
   const xIdxs  = [0, Math.floor(n*0.25), Math.floor(n*0.5), Math.floor(n*0.75), n-1];
   const xLabels = [...new Set(xIdxs)].map(i => {
-    return `<text x="${px(i).toFixed(1)}" y="${(VH-4).toFixed(1)}" text-anchor="middle" font-size="9" fill="var(--dim)">${fmtDate(rows[i].date)}</text>`;
+    return `<text x="${px(i).toFixed(1)}" y="${(VH-4).toFixed(1)}" text-anchor="middle" font-size="9" fill="var(--dim)">${fmtAxis(rows[i])}</text>`;
   }).join('');
 
   // End-point dot (like Toss)
@@ -1603,8 +1613,10 @@ function buildLineChart(box, perfEl, rows, preset) {
     const mx    = (e.clientX - rect.left) / rect.width * VW;
     const idx   = Math.max(0, Math.min(n - 1, Math.round((mx - pad.l) / IW * (n - 1))));
     const row   = rows[idx];
-    const d     = row.date;
-    const dateStr = `${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}`;
+    const d     = row.date || '';
+    const dateStr = (preset === '1D' && row.time)
+      ? `${d.slice(4,6)}/${d.slice(6,8)} ${row.time.slice(0,2)}:${row.time.slice(2,4)}`
+      : `${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}`;
 
     const tipX  = px(idx) / VW * rect.width + rect.left - box.getBoundingClientRect().left;
     const tipY  = py(row.close) / VH * rect.height;

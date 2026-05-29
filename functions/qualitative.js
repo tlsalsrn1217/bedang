@@ -94,12 +94,20 @@ async function callGeminiGrounded(prompt, apiKey) {
     tools:    [{ googleSearch: {} }],
     generationConfig: { temperature: 0.3, maxOutputTokens: 8000 },
   };
-  const res = await fetch(url, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(body),
-    signal:  AbortSignal.timeout(35000),
-  });
+  let res;
+  try {
+    res = await fetch(url, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+      signal:  AbortSignal.timeout(75000), // 그라운딩 응답은 종종 30~60초 — 여유 있게
+    });
+  } catch (e) {
+    if (e.name === 'TimeoutError' || /aborted due to timeout/i.test(e.message || '')) {
+      throw new Error('Gemini 그라운딩 응답이 75초를 넘어 중단됐어요. ↻ 재분석을 한 번 더 눌러보세요.');
+    }
+    throw e;
+  }
   if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${await res.text()}`);
   const data = await res.json();
   const cand = data?.candidates?.[0];

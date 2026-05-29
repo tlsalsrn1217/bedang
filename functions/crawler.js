@@ -1,3 +1,4 @@
+// v2
 /**
  * crawler.js — KIS Developers (한국투자증권) 무료 REST API 기반 재무지표 수집
  * ------------------------------------------------------------------
@@ -95,7 +96,8 @@ async function fetchMetrics(code) {
     return Number.isFinite(n) && n !== 0 ? n : null;
   };
 
-  const price = num(o.stck_prpr);
+  // stck_prpr이 0이면 당일 미체결 → 기준가(전일종가)로 폴백
+  const price = num(o.stck_prpr) ?? num(o.stck_sdpr) ?? null;
   const eps   = num(o.eps);
   const bps   = num(o.bps);
   // KIS inquire-price 응답에 ROE 직접 필드 없음 → EPS/BPS × 100 으로 근사
@@ -121,8 +123,8 @@ async function fetchMetrics(code) {
   return data;
 }
 
-// ── 다수 종목 병렬 수집 (KIS 무료 20req/s 한도 내 concurrency=5) ──
-async function fetchMany(codes, concurrency = 5) {
+// ── 다수 종목 병렬 수집 (KIS 무료 20req/s 한도 — concurrency=4, delay=120ms → ~13req/s) ──
+async function fetchMany(codes, concurrency = 4) {
   const out   = new Array(codes.length);
   const queue = codes.map((code, i) => ({ code, i }));
   async function worker() {
@@ -130,9 +132,10 @@ async function fetchMany(codes, concurrency = 5) {
       const { code, i } = queue.shift();
       try {
         out[i] = await fetchMetrics(code);
+        await sleep(120); // rate limit 준수: 4worker × (1/0.27s) ≈ 15req/s
       } catch (e) {
-        await sleep(400);
-        try { cache.delete(code); out[i] = await fetchMetrics(code); }
+        await sleep(600);
+        try { cache.delete(code); out[i] = await fetchMetrics(code); await sleep(120); }
         catch (e2) { out[i] = { code, error: String(e2.message ?? e2) }; }
       }
     }
@@ -185,6 +188,74 @@ async function fetchChartPage(code, periodCode, from, to) {
   })).filter(r => r.close > 0);
 }
 
+// 분봉(intraday) — 당일 시각별 데이터. 한 번 호출 시 약 30개의 분봉을 반환.
+// KIS 'inquire-time-itemchartprice' — tr_id: FHKST03010200
+async function fetchIntradayPage(code, hhmmss) {
+  const token = await getToken();
+  const key   = process.env.KIS_APP_KEY;
+  const sec   = process.env.KIS_APP_SECRET;
+
+  const url = new URL(`${BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-time-itemchartprice`);
+  url.searchParams.set('FID_ETC_CLS_CODE',       '');
+  url.searchParams.set('FID_COND_MRKT_DIV_CODE', 'J');
+  url.searchParams.set('FID_INPUT_ISCD',         code);
+  url.searchParams.set('FID_INPUT_HOUR_1',       hhmmss); // 빈값이면 현재 시각부터 과거
+  url.searchParams.set('FID_PW_DATA_INCU_YN',    'N');
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      authorization: `Bearer ${token}`,
+      appkey:   key,
+      appsecret: sec,
+      tr_id:    'FHKST03010200',
+      custtype: 'P',
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) throw new Error(`KIS intraday ${code} HTTP ${res.status}`);
+  const json = await res.json();
+  if (json.rt_cd !== '0') throw new Error(`KIS intraday ${code}: ${json.msg1}`);
+
+  // output2: 시각 내림차순(최근 → 과거)
+  return (json.output2 || []).map(r => ({
+    date:  r.stck_bsop_date,
+    time:  r.stck_cntg_hour, // HHMMSS
+    close: parseFloat(r.stck_prpr) || 0,
+    open:  parseFloat(r.stck_oprc) || 0,
+    high:  parseFloat(r.stck_hgpr) || 0,
+    low:   parseFloat(r.stck_lwpr) || 0,
+  })).filter(r => r.close > 0);
+}
+
+// 09:00 ~ 15:30 전 시간대 분봉 수집 (페이징, 시간 거꾸로 내려가며)
+async function fetchIntradayFull(code) {
+  const all = [];
+  const seen = new Set();
+  // KIS는 한 번 호출에 102개 1분봉 → 약 1.7시간. 6.5시간 다 받으려면 4~5회 호출.
+  let cursor = ''; // 빈값 → 현재 시각부터
+  for (let i = 0; i < 6; i++) {
+    let page;
+    try { page = await fetchIntradayPage(code, cursor); }
+    catch (e) { console.error('[crawler] intraday page error:', e.message); break; }
+    if (!page || page.length === 0) break;
+    let added = 0;
+    for (const r of page) {
+      const k = r.date + r.time;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      all.push(r);
+      added++;
+    }
+    if (added === 0) break; // 더 이상 새 데이터 없음
+    // 가장 오래된 시각보다 1분 전부터 다시 조회
+    const oldest = page[page.length - 1].time;
+    if (!oldest || oldest <= '090000') break; // 장 시작 이전 도달
+    cursor = oldest;
+  }
+  // 시간 오름차순 정렬
+  return all.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+}
+
 // 긴 기간 페이징: dateRange를 chunkMonths 단위로 분할해 이어붙임
 function splitDateRange(fromDate, toDate, chunkMonths) {
   const chunks = [];
@@ -206,7 +277,10 @@ function splitDateRange(fromDate, toDate, chunkMonths) {
 }
 
 async function fetchChart(code, preset) {
-  // preset: '1D' | '1W' | '1M' | '1Y' | '5Y' | 'ALL'
+  // preset: '1D'(분봉) | '1W' | '2W' | '1M' | '3M' | '1Y' | '3Y' | '5Y' | 'ALL'
+  if (preset === '1D') {
+    return await fetchIntradayFull(code);
+  }
   const today = new Date();
   const fmt   = d => d.toISOString().slice(0,10).replace(/-/g,'');
   const ago   = (years=0, months=0, days=0) => {
@@ -219,13 +293,15 @@ async function fetchChart(code, preset) {
 
   // 프리셋별 설정
   const cfg = {
-    '3M': { period: 'D', from: ago(0,3),  chunkM: null },  // 일봉 3개월 (~63건)
+    '1W': { period: 'D', from: ago(0,0,7),  chunkM: null },  // 일봉 1주 (~5건)
+    '2W': { period: 'D', from: ago(0,0,14), chunkM: null },  // 일봉 2주 (~10건)
+    '1M': { period: 'D', from: ago(0,1),    chunkM: null },  // 일봉 1개월 (~22건)
+    '3M': { period: 'D', from: ago(0,3),    chunkM: null },  // 일봉 3개월 (~63건)
     '1Y': { period: 'W', from: ago(1),    chunkM: null },  // 주봉 1년 (~52건)
     '3Y': { period: 'M', from: ago(3),    chunkM: null },  // 월봉 3년 (~36건)
     '5Y': { period: 'M', from: ago(5),    chunkM: null },  // 월봉 5년 (~60건)
-    '10Y':{ period: 'M', from: ago(10),   chunkM: 60   },  // 월봉 10년 → 2페이지
     'ALL':{ period: 'Y', from: ago(30),   chunkM: null },  // 연봉 30년 (~30건)
-  }[preset] || { period: 'D', from: ago(0,3), chunkM: null };
+  }[preset] || { period: 'D', from: ago(0,1), chunkM: null };
 
   const fromStr = fmt(cfg.from);
   const toStr   = fmt(today);
